@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServicePro — Trouvez un prestataire vérifié</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#0F1B2D',
+          paper: '#F7F5F1',
+          slate: '#5B6472',
+          line: '#E4DED2',
+          amber: '#C8932A',
+          emerald: {
+            50: '#E8F3F0',
+            100: '#CFE8E1',
+            500: '#0E7C66',
+            600: '#0B6657',
+            700: '#0B5C4D'
+          }
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; }
+  ::selection { background: #CFE8E1; color: #0F1B2D; }
+  a, button { transition: all .2s ease; }
+  :focus-visible { outline: 2px solid #0E7C66; outline-offset: 2px; border-radius: 4px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; letter-spacing: .14em; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp .7s ease both; }
+  .fade-up-1 { animation-delay: .05s; }
+  .fade-up-2 { animation-delay: .15s; }
+  .fade-up-3 { animation-delay: .25s; }
+  @media (prefers-reduced-motion: reduce) {
+    .fade-up { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body class="bg-paper text-ink">
+
+<!-- NAVBAR -->
+<header class="bg-ink/0 absolute top-0 left-0 right-0 z-20">
+  <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-5">
+    <a href="#" class="flex items-center gap-2">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500" aria-hidden="true">
+        <path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/>
+        <path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span class="font-display font-semibold text-xl text-white tracking-tight">ServicePro</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-white/80">
+      <a href="#services" class="hover:text-white">Services</a>
+      <a href="#prestataires" class="hover:text-white">Prestataires</a>
+      <a href="#avis" class="hover:text-white">Témoignages</a>
+      <a href="#" class="hover:text-white">Tarifs</a>
+    </nav>
+    <div class="hidden md:flex items-center gap-3">
+      <a href="#" class="px-4 py-2 text-sm font-medium text-white/90 hover:text-white">Connexion</a>
+      <a href="{% url 'choix_inscription' %}" class="px-4 py-2 text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-white rounded-md">Inscription</a>
+    </div>
+    <button id="menuBtn" class="md:hidden text-white" aria-label="Ouvrir le menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden bg-ink border-t border-white/10 px-6 py-4 space-y-3">
+    <a href="#services" class="block text-white/90 text-sm">Services</a>
+    <a href="#prestataires" class="block text-white/90 text-sm">Prestataires</a>
+    <a href="#avis" class="block text-white/90 text-sm">Témoignages</a>
+    <a href="#" class="block text-white/90 text-sm">Tarifs</a>
+    <div class="flex gap-3 pt-2">
+    <a href="#" class="flex-1 text-center px-4 py-2 text-sm border border-white/30 text-white rounded-md">Connexion</a>
+    <a href="{% url 'choix_inscription' %}" class="flex-1 text-center px-4 py-2 text-sm bg-emerald-500 text-white rounded-md">Inscription</a>  
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="bg-ink text-white pt-32 pb-24 px-6">
+  <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+    <div class="fade-up fade-up-1">
+      <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        Mise en relation B2B &amp; freelance
+      </p>
+      <h2 class="font-display font-semibold text-4xl md:text-5xl leading-[1.1] tracking-tight">
+        Le bon prestataire,<br>vérifié avant de vous<br>être proposé.
+      </h2>
+      <p class="mt-6 text-white/70 text-lg max-w-md leading-relaxed">
+        Développeurs, designers, traducteurs et consultants évalués sur leurs réalisations et leur fiabilité — pas seulement sur un profil bien rempli.
+      </p>
+
+      <form class="mt-9 bg-white rounded-lg p-2 flex flex-col sm:flex-row gap-2 max-w-xl shadow-xl" onsubmit="return false;">
+        <label for="searchInput" class="sr-only">Rechercher un service</label>
+        <input id="searchInput" type="text" placeholder="Quel service recherchez-vous ?"
+          class="flex-1 px-4 py-3 text-ink placeholder:text-slate/70 rounded-md focus-visible:outline-none">
+        <button type="submit" class="flex items-center justify-center gap-2 px-5 py-3 bg-ink hover:bg-ink/90 text-white text-sm font-semibold rounded-md">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Rechercher
+        </button>
+      </form>
+
+      <div class="mt-10 flex flex-wrap gap-x-10 gap-y-4 font-mono text-sm">
+        <div><span class="text-white font-semibold">1 240+</span><span class="text-white/50"> prestataires vérifiés</span></div>
+        <div><span class="text-white font-semibold">4.8 / 5</span><span class="text-white/50"> note moyenne</span></div>
+        <div><span class="text-white font-semibold">&lt; 24h</span><span class="text-white/50"> délai de réponse</span></div>
+      </div>
+    </div>
+
+    <!-- Live preview panel -->
+    <div class="fade-up fade-up-2 relative">
+      <div class="bg-white rounded-xl shadow-2xl p-5 space-y-3">
+        <p class="eyebrow text-[11px] text-slate/70 uppercase tracking-widest mb-1">Résultats pour « développeur web »</p>
+
+        <div class="flex items-center gap-4 p-3 rounded-lg border border-line">
+          <div class="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center font-semibold text-sm shrink-0">AK</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="font-semibold text-ink text-sm truncate">Aline K.</p>
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500 shrink-0" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <p class="text-slate text-xs">Développeuse Full-Stack</p>
+          </div>
+          <div class="flex items-center gap-1 text-xs font-mono text-ink shrink-0">
+            <svg viewBox="0 0 20 20" class="w-3.5 h-3.5 text-amber" fill="currentColor" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9L10 1.5z"/></svg>
+            4.9
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 p-3 rounded-lg border border-line">
+          <div class="w-12 h-12 rounded-full bg-ink text-white flex items-center justify-center font-semibold text-sm shrink-0">JM</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <p class="font-semibold text-ink text-sm truncate">Junior M.</p>
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500 shrink-0" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <p class="text-slate text-xs">Designer UI/UX</p>
+          </div>
+          <div class="flex items-center gap-1 text-xs font-mono text-ink shrink-0">
+            <svg viewBox="0 0 20 20" class="w-3.5 h-3.5 text-amber" fill="currentColor" aria-hidden="true"><path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9l-5.2 2.7 1-5.8L1.5 7.7l5.9-.9L10 1.5z"/></svg>
+            4.8
+          </div>
+        </div>
+
+        <p class="text-center text-slate text-xs pt-1">+ 1 238 autres profils vérifiés</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services" class="max-w-7xl mx-auto py-24 px-6">
+  <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-3">
+    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+    Catalogue
+  </p>
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+    <h3 class="font-display font-semibold text-3xl text-ink max-w-lg">Les services les plus demandés</h3>
+    <p class="text-slate max-w-sm">Six domaines, des prestataires contrôlés dans chacun avant d'apparaître dans une recherche.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 17l-5-5 5-5M15 7l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h4 class="font-semibold text-ink">Développement Web</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Sites, applications et plateformes sur mesure.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 6 000 FCFA / h</p>
+    </div>
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-1-1-2-2-2h-3a2 2 0 0 1-2-2V6c0-1.7-1-3-2-3z" stroke-linejoin="round"/><circle cx="8" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="16" r="1" fill="currentColor" stroke="none"/></svg>
+      <h4 class="font-semibold text-ink">Design Graphique</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Identité de marque, logos, supports visuels.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 4 500 FCFA / h</p>
+    </div>
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l9 4V6L6 10H4a1 1 0 0 0-1 1z" stroke-linejoin="round"/><path d="M17 9a3 3 0 0 1 0 6" stroke-linecap="round"/></svg>
+      <h4 class="font-semibold text-ink">Marketing Digital</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Publicité, réseaux sociaux, stratégie de contenu.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 5 000 FCFA / h</p>
+    </div>
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke-linecap="round"/></svg>
+      <h4 class="font-semibold text-ink">Traduction</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Documents, sites et contenus multilingues.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 3 500 FCFA / h</p>
+    </div>
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 19h4l10-10-4-4L4 15v4z" stroke-linejoin="round"/><path d="M13 6l4 4" stroke-linecap="round"/></svg>
+      <h4 class="font-semibold text-ink">Rédaction</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Articles, fiches produits, contenus éditoriaux.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 3 000 FCFA / h</p>
+    </div>
+    <div class="bg-white p-7 rounded-lg border border-line hover:-translate-y-1 hover:shadow-lg transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-emerald-500 mb-4" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="12" width="3" height="8"/><rect x="10" y="6" width="3" height="14"/><rect x="16" y="9" width="3" height="11"/></svg>
+      <h4 class="font-semibold text-ink">Conseil</h4>
+      <p class="text-slate text-sm mt-1.5 leading-relaxed">Stratégie, gestion de projet, accompagnement.</p>
+      <p class="font-mono text-xs text-slate/70 mt-4">À partir de 7 000 FCFA / h</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRESTATAIRES -->
+<section id="prestataires" class="bg-white border-y border-line py-24 px-6">
+  <div class="max-w-7xl mx-auto">
+    <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-3">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      Talents vérifiés
+    </p>
+    <h3 class="font-display font-semibold text-3xl text-ink mb-12 max-w-lg">Ils ont déjà accompagné des centaines de clients</h3>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="p-5 rounded-lg border border-line text-center">
+        <div class="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center font-semibold mx-auto">AK</div>
+        <div class="flex items-center justify-center gap-1.5 mt-3">
+          <h4 class="font-semibold text-ink">Aline K.</h4>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <p class="text-slate text-sm">Développeuse Full-Stack</p>
+        <p class="font-mono text-xs text-amber mt-2">★ 4.9 · 32 avis</p>
+        <a href="#" class="inline-flex items-center gap-1 text-emerald-600 text-sm font-medium mt-3 hover:text-emerald-700">Voir le profil <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></a>
+      </div>
+      <div class="p-5 rounded-lg border border-line text-center">
+        <div class="w-14 h-14 rounded-full bg-ink text-white flex items-center justify-center font-semibold mx-auto">JM</div>
+        <div class="flex items-center justify-center gap-1.5 mt-3">
+          <h4 class="font-semibold text-ink">Junior M.</h4>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <p class="text-slate text-sm">Designer UI/UX</p>
+        <p class="font-mono text-xs text-amber mt-2">★ 4.8 · 24 avis</p>
+        <a href="#" class="inline-flex items-center gap-1 text-emerald-600 text-sm font-medium mt-3 hover:text-emerald-700">Voir le profil <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></a>
+      </div>
+      <div class="p-5 rounded-lg border border-line text-center">
+        <div class="w-14 h-14 rounded-full bg-amber text-white flex items-center justify-center font-semibold mx-auto">FN</div>
+        <div class="flex items-center justify-center gap-1.5 mt-3">
+          <h4 class="font-semibold text-ink">Farida N.</h4>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <p class="text-slate text-sm">Traductrice EN ↔ FR</p>
+        <p class="font-mono text-xs text-amber mt-2">★ 4.7 · 19 avis</p>
+        <a href="#" class="inline-flex items-center gap-1 text-emerald-600 text-sm font-medium mt-3 hover:text-emerald-700">Voir le profil <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></a>
+      </div>
+      <div class="p-5 rounded-lg border border-line text-center">
+        <div class="w-14 h-14 rounded-full bg-slate text-white flex items-center justify-center font-semibold mx-auto">CB</div>
+        <div class="flex items-center justify-center gap-1.5 mt-3">
+          <h4 class="font-semibold text-ink">Cédric B.</h4>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <p class="text-slate text-sm">Consultant Marketing</p>
+        <p class="font-mono text-xs text-amber mt-2">★ 4.9 · 41 avis</p>
+        <a href="#" class="inline-flex items-center gap-1 text-emerald-600 text-sm font-medium mt-3 hover:text-emerald-700">Voir le profil <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TÉMOIGNAGES -->
+<section id="avis" class="max-w-7xl mx-auto py-24 px-6">
+  <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-3">
+    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+    Avis clients
+  </p>
+  <h3 class="font-display font-semibold text-3xl text-ink mb-12 max-w-lg">Ce qu'en disent nos clients</h3>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white p-8 rounded-lg border border-line">
+      <span class="font-display text-5xl text-emerald-100 leading-none">"</span>
+      <p class="text-ink leading-relaxed mt-2">Nous cherchions un développeur fiable pour refaire notre site en moins de deux semaines. Le profil proposé correspondait exactement au besoin, et les avis vérifiés nous ont évité de mauvaises surprises.</p>
+      <div class="flex items-center gap-3 mt-6">
+        <div class="w-10 h-10 rounded-full bg-ink text-white flex items-center justify-center text-xs font-semibold">BT</div>
+        <div>
+          <p class="font-semibold text-ink text-sm">Brice T.</p>
+          <p class="text-slate text-xs">Fondateur, Atelier Kossam</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white p-8 rounded-lg border border-line">
+      <span class="font-display text-5xl text-emerald-100 leading-none">"</span>
+      <p class="text-ink leading-relaxed mt-2">La mise en relation a pris quelques minutes et la prestataire a répondu le jour même. Le badge de vérification fait une vraie différence quand on délègue à quelqu'un qu'on ne connaît pas encore.</p>
+      <div class="flex items-center gap-3 mt-6">
+        <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-semibold">CN</div>
+        <div>
+          <p class="font-semibold text-ink text-sm">Carine N.</p>
+          <p class="text-slate text-xs">Responsable Marketing, NovaCom</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA PRESTATAIRE -->
+<section class="bg-ink text-white py-20 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div>
+      <h3 class="font-display font-semibold text-2xl md:text-3xl">Vous êtes prestataire ?</h3>
+      <p class="text-white/70 mt-2 max-w-md">Rejoignez un réseau de professionnels vérifiés et accédez à des clients qualifiés, sans démarchage.</p>
+    </div>
+    <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md whitespace-nowrap">
+      Devenir prestataire vérifié
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-ink text-white/70 px-6 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <svg viewBox="0 0 24 24" class="w-6 h-6 text-emerald-500" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <span class="font-display font-semibold text-lg text-white">ServicePro</span>
+      </div>
+      <p class="text-sm leading-relaxed max-w-xs">La plateforme qui met en relation clients et prestataires vérifiés, partout où le besoin se trouve.</p>
+    </div>
+    <div>
+      <h5 class="text-white text-sm font-semibold mb-3">Produit</h5>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#services" class="hover:text-white">Services</a></li>
+        <li><a href="#prestataires" class="hover:text-white">Prestataires</a></li>
+        <li><a href="#" class="hover:text-white">Tarifs</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5 class="text-white text-sm font-semibold mb-3">Entreprise</h5>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white">À propos</a></li>
+        <li><a href="#" class="hover:text-white">Carrières</a></li>
+        <li><a href="#" class="hover:text-white">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5 class="text-white text-sm font-semibold mb-3">Légal</h5>
+      <ul class="space-y-2 text-sm">
+        <li><a href="#" class="hover:text-white">Conditions d'utilisation</a></li>
+        <li><a href="#" class="hover:text-white">Confidentialité</a></li>
+        <li><a href="#" class="hover:text-white">Cookies</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto border-t border-white/10 mt-12 pt-6 text-xs text-white/50">
+    © 2026 ServicePro. Tous droits réservés.
+  </div>
+</footer>
+
+<script>
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => {
+    const isHidden = mobileMenu.classList.contains('hidden');
+    mobileMenu.classList.toggle('hidden');
+    menuBtn.setAttribute('aria-expanded', String(isHidden));
+  });
+</script>
+</body>
+</html>

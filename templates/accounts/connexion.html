@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServicePro — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#0F1B2D',
+          paper: '#F7F5F1',
+          slate: '#5B6472',
+          line: '#E4DED2',
+          amber: '#C8932A',
+          emerald: {
+            50: '#E8F3F0',
+            100: '#CFE8E1',
+            500: '#0E7C66',
+            600: '#0B6657',
+            700: '#0B5C4D'
+          }
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  ::selection { background: #CFE8E1; color: #0F1B2D; }
+  a, button { transition: all .2s ease; }
+  :focus-visible { outline: 2px solid #0E7C66; outline-offset: 2px; border-radius: 4px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; letter-spacing: .14em; }
+  input[type="email"], input[type="password"] {
+    width: 100%; padding: .7rem .9rem; border: 1px solid #E4DED2; border-radius: .5rem;
+    background: #fff; font-size: .9rem; color: #0F1B2D;
+  }
+  input::placeholder { color: #5B6472; opacity: .6; }
+  input:focus { border-color: #0E7C66; box-shadow: 0 0 0 3px #E8F3F0; outline: none; }
+</style>
+</head>
+<body class="bg-paper text-ink">
+
+<!-- TOP BAR -->
+<header class="bg-white border-b border-line">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    <a href="#" class="flex items-center gap-2">
+      <svg viewBox="0 0 24 24" class="w-6 h-6 text-emerald-500" aria-hidden="true">
+        <path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/>
+        <path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span class="font-display font-semibold text-lg tracking-tight">ServicePro</span>
+    </a>
+    <a href="#" class="flex items-center gap-1.5 text-sm text-slate hover:text-ink">
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
+      Retour à l'accueil
+    </a>
+  </div>
+</header>
+
+<main class="grid lg:grid-cols-2 min-h-[calc(100vh-65px)]">
+
+  <!-- LEFT BRAND PANEL -->
+  <div class="hidden lg:flex flex-col justify-between bg-ink text-white p-12">
+    <div>
+      <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        Espace personnel
+      </p>
+      <h2 class="font-display font-semibold text-3xl leading-tight max-w-sm">
+        Retrouvez vos prestataires, vos demandes et vos échanges.
+      </h2>
+      <p class="text-white/70 mt-4 max-w-sm leading-relaxed">
+        Connectez-vous avec l'adresse email utilisée lors de votre inscription, que vous soyez client ou prestataire — votre tableau de bord s'adapte automatiquement.
+      </p>
+    </div>
+
+    <div class="flex gap-x-10 font-mono text-sm pt-10 border-t border-white/10">
+      <div><span class="text-white font-semibold">1 240+</span><span class="text-white/50"> vérifiés</span></div>
+      <div><span class="text-white font-semibold">4.8 / 5</span><span class="text-white/50"> note</span></div>
+      <div><span class="text-white font-semibold">&lt; 24h</span><span class="text-white/50"> réponse</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md">
+
+      <!-- Success state (hidden by default) -->
+      <div id="successPanel" class="hidden text-center py-16">
+        <svg viewBox="0 0 24 24" class="w-14 h-14 text-emerald-500 mx-auto" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3 class="font-display font-semibold text-2xl mt-5">Connexion réussie</h3>
+        <p class="text-slate mt-2 max-w-sm mx-auto">Redirection vers votre tableau de bord…</p>
+      </div>
+
+      <!-- Form -->
+      <div id="formWrapper">
+        <h1 class="font-display font-semibold text-2xl">Se connecter</h1>
+        <p class="text-slate text-sm mt-1.5 mb-8">Accédez à votre espace client ou prestataire.</p>
+
+        <form id="loginForm" novalidate class="space-y-5">
+          <div>
+            <label for="email" class="block text-sm font-medium mb-1.5">Email</label>
+            <input type="email" id="email" name="email" placeholder="vous@exemple.com" required>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="password" class="block text-sm font-medium">Mot de passe</label>
+              <a href="#" class="text-sm text-emerald-600 hover:underline">Mot de passe oublié ?</a>
+            </div>
+            <div class="relative">
+              <input type="password" id="password" name="password" placeholder="Votre mot de passe" required>
+              <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate" data-target="password" aria-label="Afficher le mot de passe">
+                <svg class="eye-open w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-closed w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18" stroke-linecap="round"/><path d="M6.5 6.7C4 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.8M17.6 17.4C20 15.8 22 12 22 12s-1.6-2.8-4.1-4.6M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>
+              </button>
+            </div>
+            <p id="loginError" class="hidden text-xs text-red-600 mt-1.5">Email ou mot de passe incorrect.</p>
+          </div>
+
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 accent-emerald-600">
+            <span class="text-sm text-slate">Se souvenir de moi</span>
+          </label>
+
+          <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md">
+            Se connecter
+          </button>
+        </form>
+
+        <p class="text-center text-sm text-slate mt-7">
+          Pas encore de compte ? <a href="#" class="text-emerald-600 font-medium hover:underline">Créer un compte client ou prestataire</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Password visibility toggle
+  document.querySelectorAll('.pwd-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.querySelector('.eye-open').classList.toggle('hidden', isPwd);
+      btn.querySelector('.eye-closed').classList.toggle('hidden', !isPwd);
+    });
+  });
+
+  // Submit handling (front-end demo only)
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.getElementById('loginError').classList.add('hidden');
+    document.getElementById('formWrapper').classList.add('hidden');
+    document.getElementById('successPanel').classList.remove('hidden');
+  });
+</script>
+</body>
+</html>

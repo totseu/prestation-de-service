@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServicePro — Tableau de bord client</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink: '#0F1B2D', paper: '#F7F5F1', slate: '#5B6472', line: '#E4DED2',
+        amber: '#C8932A',
+        emerald: { 50:'#E8F3F0', 100:'#CFE8E1', 500:'#0E7C66', 600:'#0B6657', 700:'#0B5C4D' }
+      },
+      fontFamily: { display:['Fraunces','serif'], sans:['Inter','sans-serif'], mono:['"IBM Plex Mono"','monospace'] }
+    }
+  }
+}
+</script>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:#F7F5F1;color:#0F1B2D}
+  ::selection{background:#CFE8E1;color:#0F1B2D}
+  :focus-visible{outline:2px solid #0E7C66;outline-offset:2px;border-radius:4px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;letter-spacing:.14em}
+  /* sidebar */
+  #sidebar{width:240px;min-height:100vh;background:#0F1B2D;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:30;transition:transform .25s ease}
+  #main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+  @media(max-width:1023px){#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#main{margin-left:0}}
+  /* nav items */
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.65);font-size:.85rem;font-weight:500;margin:2px 8px;transition:all .18s}
+  .nav-item:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .nav-item.active{color:#fff;background:rgba(14,124,102,.25);border-left:2px solid #0E7C66;padding-left:16px}
+  .nav-item svg{opacity:.7;flex-shrink:0}
+  .nav-item.active svg{opacity:1}
+  /* section panels */
+  .panel{display:none}.panel.active{display:block}
+  /* cards */
+  .card{background:#fff;border:1px solid #E4DED2;border-radius:12px;padding:1.5rem}
+  /* inputs */
+  .inp{width:100%;padding:.65rem .9rem;border:1px solid #E4DED2;border-radius:.5rem;background:#fff;font-size:.875rem;color:#0F1B2D}
+  .inp::placeholder{color:#5B6472;opacity:.6}
+  .inp:focus{border-color:#0E7C66;box-shadow:0 0 0 3px #E8F3F0;outline:none}
+  select.inp{cursor:pointer}
+  /* badge */
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:20px}
+  .badge-green{background:#E8F3F0;color:#0E7C66}
+  .badge-amber{background:#FDF6E3;color:#C8932A}
+  .badge-red{background:#FEE2E2;color:#DC2626}
+  .badge-blue{background:#EFF6FF;color:#2563EB}
+  /* star */
+  .star{color:#C8932A}
+  /* btn */
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.6rem 1.2rem;background:#0E7C66;color:#fff;font-size:.875rem;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:background .18s}
+  .btn-primary:hover{background:#0B6657}
+  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.6rem 1.2rem;background:transparent;color:#0F1B2D;font-size:.875rem;font-weight:600;border-radius:8px;border:1px solid #E4DED2;cursor:pointer;transition:all .18s}
+  .btn-outline:hover{border-color:#0E7C66;color:#0E7C66}
+  /* stat card */
+  .stat-card{background:#fff;border:1px solid #E4DED2;border-radius:12px;padding:1.2rem 1.5rem}
+  /* progress */
+  .progress-bar{height:6px;background:#E4DED2;border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;background:#0E7C66;border-radius:3px;transition:width .4s}
+  /* modal overlay */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,27,45,.5);backdrop-filter:blur(2px);z-index:50;display:none;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:#fff;border-radius:16px;padding:2rem;width:90%;max-width:480px;position:relative}
+  /* tabs */
+  .hist-tab{padding:.5rem 1rem;font-size:.85rem;font-weight:600;color:#5B6472;border-bottom:2px solid transparent;cursor:pointer;transition:all .18s}
+  .hist-tab.active{color:#0E7C66;border-bottom-color:#0E7C66}
+  /* toast */
+  #toast{position:fixed;bottom:24px;right:24px;background:#0F1B2D;color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;display:none;align-items:center;gap:8px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside id="sidebar" role="navigation" aria-label="Navigation principale">
+  <!-- Brand -->
+  <div class="flex items-center gap-2 px-5 py-5 border-b border-white/10">
+    <svg viewBox="0 0 24 24" class="w-6 h-6 text-emerald-500 shrink-0"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <span class="font-display font-semibold text-lg text-white tracking-tight">ServicePro</span>
+  </div>
+
+  <!-- User pill -->
+  <div class="flex items-center gap-3 mx-3 mt-4 mb-2 p-3 rounded-xl bg-white/5">
+    <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold shrink-0">CN</div>
+    <div class="min-w-0">
+      <p class="text-white text-sm font-semibold truncate">Carine Njoya</p>
+      <p class="text-white/50 text-xs truncate">Client · Yaoundé</p>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 mt-3 space-y-0.5">
+    <div class="nav-item active" data-panel="overview" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Vue d'ensemble
+    </div>
+    <div class="nav-item" data-panel="recherche" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Rechercher un service
+    </div>
+    <div class="nav-item" data-panel="demande" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+      Demander un service
+    </div>
+    <div class="nav-item" data-panel="reservations" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+      Mes réservations
+    </div>
+    <div class="nav-item" data-panel="paiement" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Paiement
+    </div>
+    <div class="nav-item" data-panel="historique" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      Historique
+    </div>
+    <div class="nav-item" data-panel="messages" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Messages
+      <span class="ml-auto bg-emerald-500 text-white text-[10px] font-mono font-bold rounded-full w-4 h-4 flex items-center justify-center">3</span>
+    </div>
+    <div class="nav-item" data-panel="profil" onclick="navigate(this)">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>
+      Mon profil
+    </div>
+  </nav>
+
+  <div class="p-4 border-t border-white/10 mt-4">
+    <a href="#" class="nav-item block text-red-400 hover:text-red-300">
+      <svg class="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Déconnexion
+    </a>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div id="main">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 bg-paper border-b border-line flex items-center justify-between px-6 py-3">
+    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-md hover:bg-line" aria-label="Menu">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+    <div class="relative flex-1 max-w-sm ml-3">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Recherche rapide…" class="inp pl-9 pr-4 py-2 text-sm">
+    </div>
+    <div class="flex items-center gap-3 ml-4">
+      <button class="relative p-2 rounded-full hover:bg-line" aria-label="Notifications">
+        <svg class="w-5 h-5 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center cursor-pointer">CN</div>
+    </div>
+  </header>
+
+  <div class="p-6 flex-1">
+
+    <!-- ===== 1. VUE D'ENSEMBLE ===== -->
+    <section class="panel active" id="panel-overview">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Bonjour, Carine 👋</p>
+        <h2 class="font-display font-semibold text-2xl">Vue d'ensemble</h2>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card">
+          <p class="text-slate text-xs font-medium mb-1">Réservations actives</p>
+          <p class="font-display font-semibold text-2xl">3</p>
+          <p class="text-emerald-500 text-xs mt-1">↑ 1 cette semaine</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate text-xs font-medium mb-1">Services consultés</p>
+          <p class="font-display font-semibold text-2xl">12</p>
+          <p class="text-slate text-xs mt-1">Ce mois-ci</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate text-xs font-medium mb-1">Total dépensé</p>
+          <p class="font-display font-semibold text-2xl">84 500 <span class="text-base font-normal text-slate">FCFA</span></p>
+          <p class="text-slate text-xs mt-1">Juin 2026</p>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate text-xs font-medium mb-1">Messages non lus</p>
+          <p class="font-display font-semibold text-2xl">3</p>
+          <p class="text-amber text-xs mt-1">⚑ Réponse en attente</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <!-- Recent reservations -->
+        <div class="card lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-sm">Réservations récentes</h3>
+            <button onclick="navigate(document.querySelector('[data-panel=reservations]'))" class="text-emerald-600 text-xs font-medium hover:underline">Tout voir</button>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 py-2 border-b border-line">
+              <div class="w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">AK</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">Développement Landing Page</p>
+                <p class="text-slate text-xs">Aline K. · 18 juin 2026</p>
+              </div>
+              <span class="badge badge-amber">En cours</span>
+            </div>
+            <div class="flex items-center gap-3 py-2 border-b border-line">
+              <div class="w-9 h-9 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">JM</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">Design logo & charte</p>
+                <p class="text-slate text-xs">Junior M. · 10 juin 2026</p>
+              </div>
+              <span class="badge badge-green">Terminé</span>
+            </div>
+            <div class="flex items-center gap-3 py-2">
+              <div class="w-9 h-9 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center shrink-0">FN</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">Traduction rapport annuel</p>
+                <p class="text-slate text-xs">Farida N. · 5 juin 2026</p>
+              </div>
+              <span class="badge badge-blue">Planifié</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-4">Actions rapides</h3>
+          <div class="space-y-2">
+            <button onclick="navigate(document.querySelector('[data-panel=recherche]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
+              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <span class="text-sm font-medium">Rechercher un service</span>
+            </button>
+            <button onclick="navigate(document.querySelector('[data-panel=demande]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
+              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></div>
+              <span class="text-sm font-medium">Poster une demande</span>
+            </button>
+            <button onclick="navigate(document.querySelector('[data-panel=paiement]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
+              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+              <span class="text-sm font-medium">Effectuer un paiement</span>
+            </button>
+            <button onclick="navigate(document.querySelector('[data-panel=historique]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
+              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></div>
+              <span class="text-sm font-medium">Voir l'historique</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 2. RECHERCHE ===== -->
+    <section class="panel" id="panel-recherche">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Catalogue</p>
+        <h2 class="font-display font-semibold text-2xl">Rechercher un service</h2>
+      </div>
+
+      <!-- Search bar -->
+      <div class="card mb-6">
+        <div class="flex flex-col md:flex-row gap-3">
+          <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="serviceSearch" placeholder="Ex. développeur web, designer, traducteur…" class="inp pl-9">
+          </div>
+          <select class="inp md:w-48">
+            <option value="">Toutes catégories</option>
+            <option>Développement Web</option>
+            <option>Design Graphique</option>
+            <option>Marketing Digital</option>
+            <option>Traduction</option>
+            <option>Rédaction</option>
+            <option>Conseil</option>
+          </select>
+          <select class="inp md:w-40">
+            <option value="">Tout budget</option>
+            <option>≤ 5 000 FCFA/h</option>
+            <option>5 000 – 10 000</option>
+            <option>> 10 000 FCFA/h</option>
+          </select>
+          <button class="btn-primary shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Rechercher
+          </button>
+        </div>
+      </div>
+
+      <!-- Results grid -->
+      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <!-- Card 1 -->
+        <div class="card hover:-translate-y-1 hover:shadow-md transition cursor-pointer" onclick="openServiceModal('Développement Landing Page','Aline K.','AK','bg-emerald-500','Développeuse Full-Stack','4.9','32','25 000')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center shrink-0">AK</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="font-semibold text-sm">Aline K.</p>
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </div>
+              <p class="text-slate text-xs">Développeuse Full-Stack</p>
+            </div>
+            <span class="badge badge-green ml-auto">Disponible</span>
+          </div>
+          <h4 class="font-semibold text-sm mb-1">Développement Landing Page</h4>
+          <p class="text-slate text-xs leading-relaxed mb-3">Site vitrine moderne, responsive, optimisé SEO. Livraison sous 7 jours.</p>
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-slate"><span class="text-amber star">★</span> 4.9 · 32 avis</span>
+            <span class="font-mono text-sm font-semibold">25 000 <span class="text-slate font-normal text-xs">FCFA</span></span>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="card hover:-translate-y-1 hover:shadow-md transition cursor-pointer" onclick="openServiceModal('Design Logo & Charte Graphique','Junior M.','JM','bg-ink','Designer UI/UX','4.8','24','18 000')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-ink text-white text-sm font-bold flex items-center justify-center shrink-0">JM</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="font-semibold text-sm">Junior M.</p>
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </div>
+              <p class="text-slate text-xs">Designer UI/UX</p>
+            </div>
+            <span class="badge badge-green ml-auto">Disponible</span>
+          </div>
+          <h4 class="font-semibold text-sm mb-1">Design Logo & Charte Graphique</h4>
+          <p class="text-slate text-xs leading-relaxed mb-3">Identité visuelle complète : logo, couleurs, typographie, kit de démarrage.</p>
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-slate"><span class="text-amber star">★</span> 4.8 · 24 avis</span>
+            <span class="font-mono text-sm font-semibold">18 000 <span class="text-slate font-normal text-xs">FCFA</span></span>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="card hover:-translate-y-1 hover:shadow-md transition cursor-pointer" onclick="openServiceModal('Traduction EN ↔ FR','Farida N.','FN','bg-amber','Traductrice certifiée','4.7','19','12 000')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-amber text-white text-sm font-bold flex items-center justify-center shrink-0">FN</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="font-semibold text-sm">Farida N.</p>
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </div>
+              <p class="text-slate text-xs">Traductrice certifiée</p>
+            </div>
+            <span class="badge badge-amber ml-auto">Occupée</span>
+          </div>
+          <h4 class="font-semibold text-sm mb-1">Traduction EN ↔ FR</h4>
+          <p class="text-slate text-xs leading-relaxed mb-3">Documents techniques, rapports, sites web. 1 000 mots/jour garanti.</p>
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-slate"><span class="text-amber star">★</span> 4.7 · 19 avis</span>
+            <span class="font-mono text-sm font-semibold">12 000 <span class="text-slate font-normal text-xs">FCFA</span></span>
+          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="card hover:-translate-y-1 hover:shadow-md transition cursor-pointer" onclick="openServiceModal('Stratégie Marketing Digital','Cédric B.','CB','bg-slate','Consultant Marketing','4.9','41','30 000')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-slate text-white text-sm font-bold flex items-center justify-center shrink-0">CB</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="font-semibold text-sm">Cédric B.</p>
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </div>
+              <p class="text-slate text-xs">Consultant Marketing</p>
+            </div>
+            <span class="badge badge-green ml-auto">Disponible</span>
+          </div>
+          <h4 class="font-semibold text-sm mb-1">Stratégie Marketing Digital</h4>
+          <p class="text-slate text-xs leading-relaxed mb-3">Audit, plan d'action réseaux sociaux, publicité en ligne ciblée.</p>
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-slate"><span class="text-amber star">★</span> 4.9 · 41 avis</span>
+            <span class="font-mono text-sm font-semibold">30 000 <span class="text-slate font-normal text-xs">FCFA</span></span>
+          </div>
+        </div>
+        <!-- Card 5 -->
+        <div class="card hover:-translate-y-1 hover:shadow-md transition cursor-pointer" onclick="openServiceModal('Rédaction articles SEO','Marie T.','MT','bg-emerald-600','Rédactrice web','4.6','15','8 000')">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-600 text-white text-sm font-bold flex items-center justify-center shrink-0">MT</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <p class="font-semibold text-sm">Marie T.</p>
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+              </div>
+              <p class="text-slate text-xs">Rédactrice web</p>
+            </div>
+            <span class="badge badge-green ml-auto">Disponible</span>
+          </div>
+          <h4 class="font-semibold text-sm mb-1">Rédaction articles SEO</h4>
+          <p class="text-slate text-xs leading-relaxed mb-3">Articles optimisés 800–1 500 mots, recherche de mots-clés incluse.</p>
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-slate"><span class="text-amber star">★</span> 4.6 · 15 avis</span>
+            <span class="font-mono text-sm font-semibold">8 000 <span class="text-slate font-normal text-xs">FCFA</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3. DEMANDER UN SERVICE ===== -->
+    <section class="panel" id="panel-demande">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Publication</p>
+        <h2 class="font-display font-semibold text-2xl">Poster une demande de service</h2>
+        <p class="text-slate text-sm mt-1">Décrivez votre besoin, les prestataires vérifiés vous répondront sous 24h.</p>
+      </div>
+      <div class="max-w-2xl">
+        <div class="card space-y-5">
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Titre de la demande</label>
+            <input type="text" class="inp" placeholder="Ex. Je cherche un développeur pour refaire mon site e-commerce">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Catégorie</label>
+            <select class="inp">
+              <option value="">Sélectionnez une catégorie</option>
+              <option>Développement Web</option>
+              <option>Design Graphique</option>
+              <option>Marketing Digital</option>
+              <option>Traduction</option>
+              <option>Rédaction</option>
+              <option>Conseil</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Description détaillée</label>
+            <textarea rows="5" class="inp resize-none" placeholder="Décrivez le projet, les livrables attendus, les contraintes techniques…"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1.5">Budget estimé (FCFA)</label>
+              <input type="number" class="inp" placeholder="Ex. 50000">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1.5">Délai souhaité</label>
+              <select class="inp">
+                <option>Le plus tôt possible</option>
+                <option>Sous 1 semaine</option>
+                <option>Sous 2 semaines</option>
+                <option>Sous 1 mois</option>
+                <option>Flexible</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Pièces jointes (optionnel)</label>
+            <label class="flex items-center gap-3 border-2 border-dashed border-line rounded-lg p-4 cursor-pointer hover:border-emerald-500 transition">
+              <input type="file" class="sr-only" multiple>
+              <svg class="w-5 h-5 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div>
+                <p class="text-sm font-medium">Importer des fichiers</p>
+                <p class="text-xs text-slate">PDF, PNG, JPG – max. 10 Mo par fichier</p>
+              </div>
+            </label>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button class="btn-primary" onclick="showToast('✅ Demande publiée — les prestataires vont vous contacter.')">Publier la demande</button>
+            <button class="btn-outline">Enregistrer comme brouillon</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 4. RÉSERVATIONS ===== -->
+    <section class="panel" id="panel-reservations">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Suivi</p>
+        <h2 class="font-display font-semibold text-2xl">Mes réservations</h2>
+      </div>
+      <div class="space-y-4">
+        <!-- Resa 1 -->
+        <div class="card">
+          <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="w-10 h-10 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">AK</div>
+              <div class="min-w-0">
+                <p class="font-semibold text-sm truncate">Développement Landing Page</p>
+                <p class="text-slate text-xs">Aline K. · Réservé le 16 juin 2026</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="badge badge-amber">En cours</span>
+              <span class="font-mono text-xs text-slate">Livraison : 25 juin 2026</span>
+              <span class="font-mono text-sm font-semibold">25 000 FCFA</span>
+              <button class="btn-outline text-xs py-1.5 px-3" onclick="navigate(document.querySelector('[data-panel=paiement]'))">Payer</button>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="flex justify-between text-xs text-slate mb-1.5"><span>Avancement</span><span>60%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
+          </div>
+        </div>
+        <!-- Resa 2 -->
+        <div class="card">
+          <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="w-10 h-10 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">JM</div>
+              <div class="min-w-0">
+                <p class="font-semibold text-sm truncate">Design Logo & Charte Graphique</p>
+                <p class="text-slate text-xs">Junior M. · Réservé le 5 juin 2026</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="badge badge-green">Terminé</span>
+              <span class="font-mono text-xs text-slate">Livré le 12 juin 2026</span>
+              <span class="font-mono text-sm font-semibold">18 000 FCFA</span>
+              <button class="btn-outline text-xs py-1.5 px-3" onclick="openRatingModal()">Noter</button>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="flex justify-between text-xs text-slate mb-1.5"><span>Avancement</span><span>100%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+          </div>
+        </div>
+        <!-- Resa 3 -->
+        <div class="card">
+          <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="w-10 h-10 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center shrink-0">FN</div>
+              <div class="min-w-0">
+                <p class="font-semibold text-sm truncate">Traduction rapport annuel EN→FR</p>
+                <p class="text-slate text-xs">Farida N. · Réservé le 20 juin 2026</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="badge badge-blue">Planifié</span>
+              <span class="font-mono text-xs text-slate">Début : 28 juin 2026</span>
+              <span class="font-mono text-sm font-semibold">12 000 FCFA</span>
+              <button class="btn-outline text-xs py-1.5 px-3 text-red-500 hover:border-red-300 hover:text-red-600" onclick="showToast('🗑 Réservation annulée.')">Annuler</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 5. PAIEMENT ===== -->
+    <section class="panel" id="panel-paiement">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Facturation</p>
+        <h2 class="font-display font-semibold text-2xl">Effectuer un paiement</h2>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6 max-w-3xl">
+        <!-- Invoice summary -->
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-4">Facture en attente</h3>
+          <div class="bg-paper rounded-lg p-4 mb-4 space-y-2">
+            <div class="flex justify-between text-sm"><span class="text-slate">Service</span><span class="font-medium">Développement Landing Page</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate">Prestataire</span><span>Aline K.</span></div>
+            <div class="flex justify-between text-sm"><span class="text-slate">Durée</span><span>7 jours</span></div>
+            <div class="border-t border-line pt-2 flex justify-between text-sm font-semibold"><span>Sous-total</span><span>25 000 FCFA</span></div>
+            <div class="flex justify-between text-sm text-slate"><span>Frais plateforme (5%)</span><span>1 250 FCFA</span></div>
+            <div class="border-t border-line pt-2 flex justify-between font-bold"><span>Total</span><span class="text-emerald-600">26 250 FCFA</span></div>
+          </div>
+        </div>
+        <!-- Payment method -->
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-4">Mode de paiement</h3>
+          <div class="space-y-3 mb-5">
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-line cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition">
+              <input type="radio" name="paymode" checked class="accent-emerald-600">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-amber rounded flex items-center justify-center shrink-0"><span class="text-white font-bold text-xs">OM</span></div>
+                <div><p class="text-sm font-medium">Orange Money</p><p class="text-xs text-slate">Paiement mobile sécurisé</p></div>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-line cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition">
+              <input type="radio" name="paymode" class="accent-emerald-600">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shrink-0"><span class="text-white font-bold text-xs">MM</span></div>
+                <div><p class="text-sm font-medium">MTN Mobile Money</p><p class="text-xs text-slate">Paiement mobile sécurisé</p></div>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-line cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition">
+              <input type="radio" name="paymode" class="accent-emerald-600">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-ink rounded flex items-center justify-center shrink-0"><span class="text-white font-bold text-xs">CB</span></div>
+                <div><p class="text-sm font-medium">Carte bancaire</p><p class="text-xs text-slate">Visa · Mastercard</p></div>
+              </div>
+            </label>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1.5">Numéro de téléphone / carte</label>
+            <input type="text" class="inp" placeholder="Ex. 6 90 00 00 00">
+          </div>
+          <button class="btn-primary w-full" onclick="showToast('💳 Paiement de 26 250 FCFA envoyé avec succès !')">Payer 26 250 FCFA</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 6. HISTORIQUE ===== -->
+    <section class="panel" id="panel-historique">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Archivés</p>
+        <h2 class="font-display font-semibold text-2xl">Historique</h2>
+      </div>
+      <!-- Tabs -->
+      <div class="flex gap-0 border-b border-line mb-5">
+        <button class="hist-tab active" onclick="histTab(this,'all')">Tout</button>
+        <button class="hist-tab" onclick="histTab(this,'services')">Services</button>
+        <button class="hist-tab" onclick="histTab(this,'payments')">Paiements</button>
+        <button class="hist-tab" onclick="histTab(this,'demands')">Demandes</button>
+      </div>
+      <div class="card overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-line">
+              <th class="pb-3 font-semibold text-slate text-xs">Date</th>
+              <th class="pb-3 font-semibold text-slate text-xs">Libellé</th>
+              <th class="pb-3 font-semibold text-slate text-xs">Prestataire</th>
+              <th class="pb-3 font-semibold text-slate text-xs">Montant</th>
+              <th class="pb-3 font-semibold text-slate text-xs">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            <tr>
+              <td class="py-3 font-mono text-xs text-slate">12 juin 2026</td>
+              <td class="py-3 font-medium">Design Logo & Charte</td>
+              <td class="py-3 text-slate">Junior M.</td>
+              <td class="py-3 font-mono font-semibold">18 000 FCFA</td>
+              <td class="py-3"><span class="badge badge-green">Payé</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 font-mono text-xs text-slate">30 mai 2026</td>
+              <td class="py-3 font-medium">Rédaction 5 articles SEO</td>
+              <td class="py-3 text-slate">Marie T.</td>
+              <td class="py-3 font-mono font-semibold">40 000 FCFA</td>
+              <td class="py-3"><span class="badge badge-green">Payé</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 font-mono text-xs text-slate">14 mai 2026</td>
+              <td class="py-3 font-medium">Stratégie marketing Q2</td>
+              <td class="py-3 text-slate">Cédric B.</td>
+              <td class="py-3 font-mono font-semibold">30 000 FCFA</td>
+              <td class="py-3"><span class="badge badge-green">Payé</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 font-mono text-xs text-slate">2 mai 2026</td>
+              <td class="py-3 font-medium">Traduction contrat commercial</td>
+              <td class="py-3 text-slate">Farida N.</td>
+              <td class="py-3 font-mono font-semibold">8 500 FCFA</td>
+              <td class="py-3"><span class="badge badge-red">Annulé</span></td>
+            </tr>
+            <tr>
+              <td class="py-3 font-mono text-xs text-slate">18 avr. 2026</td>
+              <td class="py-3 font-medium">Développement App Mobile</td>
+              <td class="py-3 text-slate">Aline K.</td>
+              <td class="py-3 font-mono font-semibold">120 000 FCFA</td>
+              <td class="py-3"><span class="badge badge-green">Payé</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 7. MESSAGES ===== -->
+    <section class="panel" id="panel-messages">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Communication</p>
+        <h2 class="font-display font-semibold text-2xl">Messages</h2>
+      </div>
+      <div class="card max-w-3xl grid md:grid-cols-5 gap-0 overflow-hidden rounded-xl border border-line p-0">
+        <!-- Conversation list -->
+        <div class="md:col-span-2 border-r border-line divide-y divide-line">
+          <div class="p-4 bg-emerald-50 cursor-pointer">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">AK</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm">Aline K.</p>
+                <p class="text-slate text-xs truncate">J'ai terminé la version mobile…</p>
+              </div>
+              <div class="flex flex-col items-end gap-1 shrink-0">
+                <p class="text-[10px] text-slate">14:32</p>
+                <span class="w-4 h-4 bg-emerald-500 rounded-full text-white text-[10px] flex items-center justify-center">2</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 cursor-pointer hover:bg-paper">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">JM</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm">Junior M.</p>
+                <p class="text-slate text-xs truncate">Livraison faite, merci !</p>
+              </div>
+              <p class="text-[10px] text-slate shrink-0">Hier</p>
+            </div>
+          </div>
+          <div class="p-4 cursor-pointer hover:bg-paper">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center shrink-0">FN</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm">Farida N.</p>
+                <p class="text-slate text-xs truncate">Bonjour, j'ai besoin de…</p>
+              </div>
+              <div class="flex flex-col items-end gap-1 shrink-0">
+                <p class="text-[10px] text-slate">Lun.</p>
+                <span class="w-4 h-4 bg-emerald-500 rounded-full text-white text-[10px] flex items-center justify-center">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Chat window -->
+        <div class="md:col-span-3 flex flex-col h-96">
+          <div class="p-4 border-b border-line flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">AK</div>
+            <div>
+              <p class="font-semibold text-sm">Aline K.</p>
+              <p class="text-xs text-slate flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>En ligne</p>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 space-y-3">
+            <div class="flex gap-2">
+              <div class="w-7 h-7 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">AK</div>
+              <div class="bg-line rounded-xl rounded-tl-none p-3 max-w-xs">
+                <p class="text-xs">Bonjour Carine ! J'ai terminé la version mobile de votre landing page. Pouvez-vous jeter un œil ?</p>
+                <p class="text-[10px] text-slate mt-1">14:28</p>
+              </div>
+            </div>
+            <div class="flex gap-2 flex-row-reverse">
+              <div class="w-7 h-7 rounded-full bg-ink text-white text-[10px] font-bold flex items-center justify-center shrink-0">CN</div>
+              <div class="bg-emerald-500 text-white rounded-xl rounded-tr-none p-3 max-w-xs">
+                <p class="text-xs">Super ! Je regarde et je reviens vers vous dans l'heure.</p>
+                <p class="text-[10px] text-white/70 mt-1">14:31</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <div class="w-7 h-7 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">AK</div>
+              <div class="bg-line rounded-xl rounded-tl-none p-3 max-w-xs">
+                <p class="text-xs">Parfait, j'ai aussi joint le lien de prévisualisation dans les fichiers 👍</p>
+                <p class="text-[10px] text-slate mt-1">14:32</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-3 border-t border-line flex gap-2">
+            <input type="text" class="inp py-2 text-xs flex-1" placeholder="Écrire un message…">
+            <button class="btn-primary px-4 py-2" onclick="showToast('Message envoyé.')">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 8. PROFIL ===== -->
+    <section class="panel" id="panel-profil">
+      <div class="mb-6">
+        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Compte</p>
+        <h2 class="font-display font-semibold text-2xl">Mon profil</h2>
+      </div>
+      <div class="max-w-2xl space-y-5">
+        <div class="card flex items-center gap-5">
+          <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-xl font-bold flex items-center justify-center shrink-0">CN</div>
+          <div class="flex-1">
+            <p class="font-semibold">Carine Njoya</p>
+            <p class="text-slate text-sm">carine.njoya@exemple.com</p>
+            <p class="text-slate text-xs mt-0.5">Client · Membre depuis janvier 2026</p>
+          </div>
+          <button class="btn-outline text-xs py-1.5 px-3">Modifier photo</button>
+        </div>
+        <div class="card space-y-4">
+          <h3 class="font-semibold text-sm">Informations personnelles</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="block text-xs font-medium text-slate mb-1">Nom</label><input type="text" value="Njoya" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Prénom</label><input type="text" value="Carine" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Email</label><input type="email" value="carine.njoya@exemple.com" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Téléphone</label><input type="text" value="+237 6 90 00 00 00" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Âge</label><input type="number" value="29" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Ville</label><input type="text" value="Yaoundé" class="inp"></div>
+          </div>
+          <button class="btn-primary text-sm" onclick="showToast('✅ Profil mis à jour.')">Enregistrer les modifications</button>
+        </div>
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-3">Sécurité</h3>
+          <div class="space-y-3">
+            <div><label class="block text-xs font-medium text-slate mb-1">Mot de passe actuel</label><input type="password" placeholder="••••••••" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Nouveau mot de passe</label><input type="password" placeholder="••••••••" class="inp"></div>
+            <div><label class="block text-xs font-medium text-slate mb-1">Confirmer le nouveau mot de passe</label><input type="password" placeholder="••••••••" class="inp"></div>
+            <button class="btn-outline text-sm" onclick="showToast('🔐 Mot de passe mis à jour.')">Changer le mot de passe</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /p-6 -->
+</div><!-- /main -->
+
+<!-- ===== SERVICE DETAIL MODAL ===== -->
+<div id="serviceModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Détail du service" onclick="if(event.target===this)closeServiceModal()">
+  <div class="modal-box">
+    <button onclick="closeServiceModal()" class="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full hover:bg-line" aria-label="Fermer">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="flex items-center gap-3 mb-4">
+      <div id="modalAvatar" class="w-12 h-12 rounded-full text-white text-sm font-bold flex items-center justify-center shrink-0"></div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <p id="modalName" class="font-semibold"></p>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-emerald-500"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <p id="modalRole" class="text-slate text-xs"></p>
+      </div>
+      <div class="ml-auto text-right">
+        <p id="modalRating" class="font-mono text-sm text-amber"></p>
+        <p id="modalReviews" class="text-xs text-slate"></p>
+      </div>
+    </div>
+    <h3 id="modalTitle" class="font-display font-semibold text-lg mb-2"></h3>
+    <p class="text-slate text-sm leading-relaxed mb-4">Service professionnel, livraison dans les délais convenus. Prestataire vérifié par l'équipe ServicePro — identité et compétences contrôlées.</p>
+    <div class="bg-paper rounded-lg p-3 mb-5 flex items-center justify-between">
+      <span class="text-slate text-sm">Tarif de base</span>
+      <span id="modalPrice" class="font-mono font-bold text-emerald-600 text-lg"></span>
+    </div>
+    <div class="flex gap-3">
+      <button class="btn-primary flex-1" onclick="closeServiceModal();navigate(document.querySelector('[data-panel=reservations]'));showToast('📅 Réservation ajoutée à vos demandes.')">Réserver ce service</button>
+      <button class="btn-outline flex-1" onclick="navigate(document.querySelector('[data-panel=messages]'));closeServiceModal()">Contacter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RATING MODAL ===== -->
+<div id="ratingModal" class="modal-overlay" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRatingModal()">
+  <div class="modal-box">
+    <button onclick="closeRatingModal()" class="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full hover:bg-line" aria-label="Fermer">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h3 class="font-display font-semibold text-lg mb-1">Noter Junior M.</h3>
+    <p class="text-slate text-sm mb-5">Design Logo & Charte Graphique</p>
+    <div class="flex gap-2 mb-5" id="starContainer">
+      <button class="star-btn text-3xl text-slate/30 hover:text-amber transition" data-v="1">★</button>
+      <button class="star-btn text-3xl text-slate/30 hover:text-amber transition" data-v="2">★</button>
+      <button class="star-btn text-3xl text-slate/30 hover:text-amber transition" data-v="3">★</button>
+      <button class="star-btn text-3xl text-slate/30 hover:text-amber transition" data-v="4">★</button>
+      <button class="star-btn text-3xl text-slate/30 hover:text-amber transition" data-v="5">★</button>
+    </div>
+    <label class="block text-sm font-medium mb-1.5">Commentaire</label>
+    <textarea rows="4" class="inp resize-none mb-5" placeholder="Décrivez votre expérience avec ce prestataire…"></textarea>
+    <button class="btn-primary w-full" onclick="closeRatingModal();showToast('⭐ Avis publié — merci !')">Publier l'avis</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" role="status" aria-live="polite">
+  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  // ---- Navigation ----
+  function navigate(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + el.dataset.panel).classList.add('active');
+    if (window.innerWidth < 1024) {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+    window.scrollTo(0,0);
+  }
+
+  // Mobile menu
+  document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+
+  // ---- Service modal ----
+  function openServiceModal(title, name, initials, avatarClass, role, rating, reviews, price) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalRole').textContent = role;
+    document.getElementById('modalRating').textContent = '★ ' + rating;
+    document.getElementById('modalReviews').textContent = reviews + ' avis';
+    document.getElementById('modalPrice').textContent = price + ' FCFA';
+    const av = document.getElementById('modalAvatar');
+    av.textContent = initials;
+    av.className = 'w-12 h-12 rounded-full text-white text-sm font-bold flex items-center justify-center shrink-0 ' + avatarClass;
+    document.getElementById('serviceModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ---- Rating modal ----
+  function openRatingModal() {
+    document.getElementById('ratingModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeRatingModal() {
+    document.getElementById('ratingModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = parseInt(btn.dataset.v);
+      document.querySelectorAll('.star-btn').forEach(b => {
+        b.style.color = parseInt(b.dataset.v) <= v ? '#C8932A' : '';
+        if (parseInt(b.dataset.v) <= v) b.classList.add('text-amber');
+        else b.classList.remove('text-amber');
+      });
+    });
+  });
+
+  // ---- History tabs ----
+  function histTab(btn, key) {
+    document.querySelectorAll('.hist-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ---- Toast ----
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    const m = document.getElementById('toastMsg');
+    m.textContent = msg;
+    t.style.display = 'flex';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  // Close sidebar on outside click (mobile)
+  document.addEventListener('click', e => {
+    const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('mobileMenuBtn');
+    if (window.innerWidth < 1024 && sb.classList.contains('open') && !sb.contains(e.target) && !btn.contains(e.target)) {
+      sb.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

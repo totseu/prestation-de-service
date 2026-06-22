@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServicePro — Créer un compte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#0F1B2D',
+          paper: '#F7F5F1',
+          slate: '#5B6472',
+          line: '#E4DED2',
+          amber: '#C8932A',
+          emerald: {
+            50: '#E8F3F0',
+            100: '#CFE8E1',
+            500: '#0E7C66',
+            600: '#0B6657',
+            700: '#0B5C4D'
+          }
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  ::selection { background: #CFE8E1; color: #0F1B2D; }
+  a, button, label { transition: all .2s ease; }
+  :focus-visible { outline: 2px solid #0E7C66; outline-offset: 2px; border-radius: 4px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; letter-spacing: .14em; }
+  input[type="text"], input[type="email"], input[type="number"], input[type="password"] {
+    width: 100%; padding: .65rem .9rem; border: 1px solid #E4DED2; border-radius: .5rem;
+    background: #fff; font-size: .9rem; color: #0F1B2D;
+  }
+  input::placeholder { color: #5B6472; opacity: .6; }
+  input:focus { border-color: #0E7C66; box-shadow: 0 0 0 3px #E8F3F0; outline: none; }
+</style>
+</head>
+<body class="bg-paper text-ink">
+
+<!-- TOP BAR -->
+<header class="bg-white border-b border-line">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    <a href="#" class="flex items-center gap-2">
+      <svg viewBox="0 0 24 24" class="w-6 h-6 text-emerald-500" aria-hidden="true">
+        <path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/>
+        <path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span class="font-display font-semibold text-lg tracking-tight">ServicePro</span>
+    </a>
+    <a href="#" class="flex items-center gap-1.5 text-sm text-slate hover:text-ink">
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 6 5 12 11 18"/></svg>
+      Retour à l'accueil
+    </a>
+  </div>
+</header>
+
+<main class="grid lg:grid-cols-2 min-h-[calc(100vh-65px)]">
+
+  <!-- LEFT BRAND PANEL -->
+  <div class="hidden lg:flex flex-col justify-between bg-ink text-white p-12">
+    <div>
+      <p class="eyebrow flex items-center gap-2 text-xs font-semibold uppercase text-emerald-500 mb-5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        Rejoindre ServicePro
+      </p>
+      <h2 class="font-display font-semibold text-3xl leading-tight max-w-sm">
+        Un compte, et accès à un réseau de confiance.
+      </h2>
+      <p class="text-white/70 mt-4 max-w-sm leading-relaxed">
+        Que vous cherchiez un prestataire ou que vous proposiez vos services, votre profil est vérifié avant de devenir visible.
+      </p>
+
+      <ul class="mt-10 space-y-4">
+        <li class="flex items-start gap-3">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <span class="text-white/85 text-sm">Profils vérifiés manuellement avant publication</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <span class="text-white/85 text-sm">Échanges et coordonnées protégés</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <span class="text-white/85 text-sm">Support disponible 7 jours sur 7</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="flex gap-x-10 font-mono text-sm pt-10 border-t border-white/10">
+      <div><span class="text-white font-semibold">1 240+</span><span class="text-white/50"> vérifiés</span></div>
+      <div><span class="text-white font-semibold">4.8 / 5</span><span class="text-white/50"> note</span></div>
+      <div><span class="text-white font-semibold">&lt; 24h</span><span class="text-white/50"> réponse</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-lg">
+
+      <!-- Success state (hidden by default) -->
+      <div id="successPanel" class="hidden text-center py-16">
+        <svg viewBox="0 0 24 24" class="w-14 h-14 text-emerald-500 mx-auto" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3 class="font-display font-semibold text-2xl mt-5">Compte créé avec succès</h3>
+        <p class="text-slate mt-2 max-w-sm mx-auto">Vérifiez votre boîte mail pour confirmer votre adresse et accéder à votre espace.</p>
+      </div>
+
+      <!-- Form -->
+      <div id="formWrapper">
+        <h1 class="font-display font-semibold text-2xl">Créer un compte</h1>
+        <p class="text-slate text-sm mt-1.5 mb-7">Quelques informations pour commencer.</p>
+
+        <!-- Role toggle -->
+        <div class="flex bg-white border border-line rounded-lg p-1 mb-8" role="tablist" aria-label="Type de compte">
+          <button type="button" data-role="client" class="role-tab flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-semibold" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>
+            Client
+          </button>
+          <button type="button" data-role="prestataire" class="role-tab flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-semibold" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round"/><line x1="3" y1="13" x2="21" y2="13"/></svg>
+            Prestataire
+          </button>
+        </div>
+
+        <form id="signupForm" novalidate>
+          <input type="hidden" id="roleInput" name="role" value="client">
+
+          <!-- ===== CLIENT FIELDS ===== -->
+          <div id="clientFields" class="space-y-5">
+            <div>
+              <label for="client_nom_complet" class="block text-sm font-medium mb-1.5">Nom complet</label>
+              <input type="text" id="client_nom_complet" name="nom_complet" placeholder="Ex. Carine Njoya" required>
+            </div>
+
+            <div>
+              <label for="client_email" class="block text-sm font-medium mb-1.5">Email</label>
+              <input type="email" id="client_email" name="email" placeholder="vous@exemple.com" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="client_age" class="block text-sm font-medium mb-1.5">Âge</label>
+                <input type="number" id="client_age" name="age" min="16" max="100" placeholder="25" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Sexe</label>
+                <div class="flex gap-2">
+                  <label class="flex-1">
+                    <input type="radio" name="sexe_client" value="Homme" class="sr-only peer" checked>
+                    <div class="peer-checked:bg-ink peer-checked:text-white peer-checked:border-ink border border-line rounded-md py-2.5 text-center text-sm font-medium text-slate cursor-pointer">Homme</div>
+                  </label>
+                  <label class="flex-1">
+                    <input type="radio" name="sexe_client" value="Femme" class="sr-only peer">
+                    <div class="peer-checked:bg-ink peer-checked:text-white peer-checked:border-ink border border-line rounded-md py-2.5 text-center text-sm font-medium text-slate cursor-pointer">Femme</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="client_password" class="block text-sm font-medium mb-1.5">Mot de passe</label>
+              <div class="relative">
+                <input type="password" id="client_password" name="password" placeholder="8 caractères minimum" minlength="8" required>
+                <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate" data-target="client_password" aria-label="Afficher le mot de passe">
+                  <svg class="eye-open w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18" stroke-linecap="round"/><path d="M6.5 6.7C4 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.8M17.6 17.4C20 15.8 22 12 22 12s-1.6-2.8-4.1-4.6M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label for="client_password_confirm" class="block text-sm font-medium mb-1.5">Confirmation du mot de passe</label>
+              <div class="relative">
+                <input type="password" id="client_password_confirm" name="password_confirm" placeholder="Retapez le mot de passe" minlength="8" required>
+                <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate" data-target="client_password_confirm" aria-label="Afficher le mot de passe">
+                  <svg class="eye-open w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18" stroke-linecap="round"/><path d="M6.5 6.7C4 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.8M17.6 17.4C20 15.8 22 12 22 12s-1.6-2.8-4.1-4.6M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>
+                </button>
+              </div>
+              <p id="client_pwd_error" class="hidden text-xs text-red-600 mt-1.5">Les mots de passe ne correspondent pas.</p>
+            </div>
+          </div>
+
+          <!-- ===== PRESTATAIRE FIELDS ===== -->
+          <div id="prestataireFields" class="hidden space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="presta_nom" class="block text-sm font-medium mb-1.5">Nom</label>
+                <input type="text" id="presta_nom" name="nom" placeholder="Njoya" required>
+              </div>
+              <div>
+                <label for="presta_prenom" class="block text-sm font-medium mb-1.5">Prénom</label>
+                <input type="text" id="presta_prenom" name="prenom" placeholder="Carine" required>
+              </div>
+            </div>
+
+            <div>
+              <label for="presta_email" class="block text-sm font-medium mb-1.5">Email</label>
+              <input type="email" id="presta_email" name="email" placeholder="vous@exemple.com" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="presta_age" class="block text-sm font-medium mb-1.5">Âge</label>
+                <input type="number" id="presta_age" name="age" min="16" max="100" placeholder="28" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Sexe</label>
+                <div class="flex gap-2">
+                  <label class="flex-1">
+                    <input type="radio" name="sexe_prestataire" value="Homme" class="sr-only peer" checked>
+                    <div class="peer-checked:bg-ink peer-checked:text-white peer-checked:border-ink border border-line rounded-md py-2.5 text-center text-sm font-medium text-slate cursor-pointer">Homme</div>
+                  </label>
+                  <label class="flex-1">
+                    <input type="radio" name="sexe_prestataire" value="Femme" class="sr-only peer">
+                    <div class="peer-checked:bg-ink peer-checked:text-white peer-checked:border-ink border border-line rounded-md py-2.5 text-center text-sm font-medium text-slate cursor-pointer">Femme</div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="presta_fonction" class="block text-sm font-medium mb-1.5">Fonction</label>
+              <input type="text" id="presta_fonction" name="fonction" placeholder="Ex. Développeur Web, Designer, Traducteur…" required>
+            </div>
+
+            <div>
+              <label for="presta_password" class="block text-sm font-medium mb-1.5">Mot de passe</label>
+              <div class="relative">
+                <input type="password" id="presta_password" name="password" placeholder="8 caractères minimum" minlength="8" required>
+                <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate" data-target="presta_password" aria-label="Afficher le mot de passe">
+                  <svg class="eye-open w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18" stroke-linecap="round"/><path d="M6.5 6.7C4 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.8M17.6 17.4C20 15.8 22 12 22 12s-1.6-2.8-4.1-4.6M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label for="presta_password_confirm" class="block text-sm font-medium mb-1.5">Confirmation du mot de passe</label>
+              <div class="relative">
+                <input type="password" id="presta_password_confirm" name="password_confirm" placeholder="Retapez le mot de passe" minlength="8" required>
+                <button type="button" class="pwd-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate" data-target="presta_password_confirm" aria-label="Afficher le mot de passe">
+                  <svg class="eye-open w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18" stroke-linecap="round"/><path d="M6.5 6.7C4 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.8M17.6 17.4C20 15.8 22 12 22 12s-1.6-2.8-4.1-4.6M10.6 10.6a2 2 0 0 0 2.8 2.8"/></svg>
+                </button>
+              </div>
+              <p id="presta_pwd_error" class="hidden text-xs text-red-600 mt-1.5">Les mots de passe ne correspondent pas.</p>
+            </div>
+
+            <div class="pt-2">
+              <p class="eyebrow flex items-center gap-2 text-[11px] font-semibold uppercase text-emerald-600 mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Documents de vérification
+              </p>
+
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 border-2 border-dashed border-line rounded-lg p-3.5 cursor-pointer hover:border-emerald-500">
+                  <input type="file" accept="image/*" name="photo_profil" class="sr-only" onchange="updateFileName(this, 'fn_profil')" required>
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate shrink-0" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg>
+                  <div>
+                    <p class="text-sm font-medium">Photo de profil</p>
+                    <p id="fn_profil" class="text-xs text-slate">Obligatoire — visage visible, JPG ou PNG</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 border-2 border-dashed border-line rounded-lg p-3.5 cursor-pointer hover:border-emerald-500">
+                  <input type="file" accept="image/*" name="photo_cni" class="sr-only" onchange="updateFileName(this, 'fn_cni')" required>
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate shrink-0" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg>
+                  <div>
+                    <p class="text-sm font-medium">Carte nationale d'identité (CNI)</p>
+                    <p id="fn_cni" class="text-xs text-slate">Obligatoire — nécessaire pour le badge vérifié</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-3 border-2 border-dashed border-line rounded-lg p-3.5 cursor-pointer hover:border-emerald-500">
+                  <input type="file" accept="image/*" name="certificat" class="sr-only" onchange="updateFileName(this, 'fn_certificat')">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5 text-slate shrink-0" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg>
+                  <div>
+                    <p class="text-sm font-medium">Certificat ou diplôme</p>
+                    <p id="fn_certificat" class="text-xs text-slate">Optionnel — renforce votre profil</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terms + submit -->
+          <label class="flex items-start gap-2.5 mt-7 cursor-pointer">
+            <input type="checkbox" required class="mt-0.5 w-4 h-4 accent-emerald-600">
+            <span class="text-sm text-slate">J'accepte les <a href="#" class="text-emerald-600 hover:underline">conditions d'utilisation</a> et la <a href="#" class="text-emerald-600 hover:underline">politique de confidentialité</a>.</span>
+          </label>
+
+          <button type="submit" id="submitBtn" class="w-full mt-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-md">
+            Créer mon compte client
+          </button>
+
+          <p class="text-center text-sm text-slate mt-6">
+            Vous avez déjà un compte ? <a href="#" class="text-emerald-600 font-medium hover:underline">Se connecter</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Role tabs
+  const tabs = document.querySelectorAll('.role-tab');
+  const clientFields = document.getElementById('clientFields');
+  const prestataireFields = document.getElementById('prestataireFields');
+  const roleInput = document.getElementById('roleInput');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function setRole(role) {
+    tabs.forEach(t => {
+      const active = t.dataset.role === role;
+      t.classList.toggle('bg-ink', active);
+      t.classList.toggle('text-white', active);
+      t.classList.toggle('text-slate', !active);
+      t.setAttribute('aria-selected', String(active));
+    });
+    clientFields.classList.toggle('hidden', role !== 'client');
+    prestataireFields.classList.toggle('hidden', role !== 'prestataire');
+    roleInput.value = role;
+    submitBtn.textContent = role === 'client' ? 'Créer mon compte client' : 'Créer mon compte prestataire';
+  }
+  tabs.forEach(t => t.addEventListener('click', () => setRole(t.dataset.role)));
+  setRole('client');
+
+  // Password visibility toggles
+  document.querySelectorAll('.pwd-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.target);
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.querySelector('.eye-open').classList.toggle('hidden', isPwd);
+      btn.querySelector('.eye-closed').classList.toggle('hidden', !isPwd);
+    });
+  });
+
+  // File name display
+  function updateFileName(input, spanId) {
+    const span = document.getElementById(spanId);
+    if (input.files && input.files[0]) {
+      span.textContent = input.files[0].name;
+      span.classList.add('text-emerald-600', 'font-medium');
+    }
+  }
+
+  // Submit handling (front-end demo only)
+  document.getElementById('signupForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const role = roleInput.value;
+    const pwdId = role === 'client' ? 'client_password' : 'presta_password';
+    const confirmId = role === 'client' ? 'client_password_confirm' : 'presta_password_confirm';
+    const errorId = role === 'client' ? 'client_pwd_error' : 'presta_pwd_error';
+
+    const pwd = document.getElementById(pwdId).value;
+    const confirm = document.getElementById(confirmId).value;
+    const errorEl = document.getElementById(errorId);
+
+    if (pwd !== confirm) {
+      errorEl.classList.remove('hidden');
+      document.getElementById(confirmId).focus();
+      return;
+    }
+    errorEl.classList.add('hidden');
+
+    document.getElementById('formWrapper').classList.add('hidden');
+    document.getElementById('successPanel').classList.remove('hidden');
+  });
+</script>
+</body>
+</html>

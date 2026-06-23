@@ -1,26 +1,22 @@
 from django.urls import path
 from . import views
 
-
 urlpatterns = [
     path(
-        'inscription/',
+        "inscription/",
         views.choix_inscription,
-        name='choix_inscription'
+        name="choix_inscription"
     ),
 
     path(
-        'inscription/client/',
-        views.inscription_client,
-        name='inscription_client'
+        "dashboard/client/",
+        views.dashboard_client,
+        name="dashboard_client"
     ),
 
     path(
-        'inscription/prestataire/',
-        views.inscription_prestataire,
-        name='inscription_prestataire'
+        "dashboard/prestataire/",
+        views.dashboard_prestataire,
+        name="dashboard_prestataire"
     ),
-
-     path('dashboard/', views.dashboard, name='dashboard'),
-     
 ]

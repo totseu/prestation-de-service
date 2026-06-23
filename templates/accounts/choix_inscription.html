@@ -135,7 +135,8 @@
           </button>
         </div>
 
-        <form id="signupForm" novalidate>
+      <form id="signupForm" method="POST" action="{% url 'inscription_client' %}" enctype="multipart/form-data">
+          {% csrf_token %}
           <input type="hidden" id="roleInput" name="role" value="client">
 
           <!-- ===== CLIENT FIELDS ===== -->
@@ -316,6 +317,7 @@
   </div>
 </main>
 
+
 <script>
   // Role tabs
   const tabs = document.querySelectorAll('.role-tab');
@@ -361,27 +363,27 @@
   }
 
   // Submit handling (front-end demo only)
-  document.getElementById('signupForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const role = roleInput.value;
-    const pwdId = role === 'client' ? 'client_password' : 'presta_password';
-    const confirmId = role === 'client' ? 'client_password_confirm' : 'presta_password_confirm';
-    const errorId = role === 'client' ? 'client_pwd_error' : 'presta_pwd_error';
+  // document.getElementById('signupForm').addEventListener('submit', function (e) {
+    //e.preventDefault();
+  //   const role = roleInput.value;
+  //   const pwdId = role === 'client' ? 'client_password' : 'presta_password';
+  //   const confirmId = role === 'client' ? 'client_password_confirm' : 'presta_password_confirm';
+  //   const errorId = role === 'client' ? 'client_pwd_error' : 'presta_pwd_error';
 
-    const pwd = document.getElementById(pwdId).value;
-    const confirm = document.getElementById(confirmId).value;
-    const errorEl = document.getElementById(errorId);
+  //   const pwd = document.getElementById(pwdId).value;
+  //   const confirm = document.getElementById(confirmId).value;
+  //   const errorEl = document.getElementById(errorId);
 
-    if (pwd !== confirm) {
-      errorEl.classList.remove('hidden');
-      document.getElementById(confirmId).focus();
-      return;
-    }
-    errorEl.classList.add('hidden');
+  //   if (pwd !== confirm) {
+  //     errorEl.classList.remove('hidden');
+  //     document.getElementById(confirmId).focus();
+  //     return;
+  //   }
+  //   errorEl.classList.add('hidden');
 
-    document.getElementById('formWrapper').classList.add('hidden');
-    document.getElementById('successPanel').classList.remove('hidden');
-  });
+  //   document.getElementById('formWrapper').classList.add('hidden');
+  //   document.getElementById('successPanel').classList.remove('hidden');
+  // });
 </script>
 </body>
 </html>

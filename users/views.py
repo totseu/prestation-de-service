@@ -6,69 +6,87 @@ from .forms import ClientRegistrationForm, PrestataireRegisterForm
 
 
 def choix_inscription(request):
-    return render(
-        request,
-        'accounts/choix_inscription.html'
-    )
 
-
-def inscription_client(request):
-
- if request.method == "POST":
-
-    form = ClientRegistrationForm(request.POST)
-
-    if form.is_valid():
-
-        print("FORMULAIRE VALIDE")
-
-        user = form.save()
-
-        login(request, user)
-
-        return redirect('dashboard')
-
-    else:
-        print(form.errors)
-
-
-def inscription_prestataire(request):
+    form_client = ClientRegistrationForm()
+    form_prestataire = PrestataireRegisterForm()
 
     if request.method == "POST":
 
-        form = PrestataireRegisterForm(
-            request.POST,
-            request.FILES
-        )
+        role = request.POST.get("role")
 
-        if form.is_valid():
+        if role not in ["client", "prestataire"]:
+            return redirect("choix_inscription")
 
-            user = form.save()
 
-            login(request, user)
+        if role == "client":
 
-            return redirect('dashboard')
+            form_client = ClientRegistrationForm(request.POST)
 
-    else:
-        form = PrestataireRegisterForm()
+            if form_client.is_valid():
 
-    return render(
-        request,
-        'accounts/inscription_prestataire.html',
-        {'form': form}
-    )
+                user = form_client.save(commit=False)
+                user.role = "client"
+                user.save()
+
+                login(request, user)
+
+                return redirect("dashboard_client")
+
+
+            else:
+                print(form_client.errors)
+
+
+
+        elif role == "prestataire":
+
+            form_prestataire = PrestataireRegisterForm(
+                request.POST,
+                request.FILES
+            )
+
+            if form_prestataire.is_valid():
+
+                user = form_prestataire.save(commit=False)
+                user.role = "prestataire"
+                user.save()
+
+                login(request, user)
+
+                return redirect("dashboard_prestataire")
+
+
+            else:
+                print(form_prestataire.errors)
+
+
+    return render(request, "accounts/choix_inscription.html", {
+        "form_client": form_client,
+        "form_prestataire": form_prestataire,
+    })
+
 
 
 @login_required
-def dashboard(request):
+def dashboard_client(request):
+
+    if request.user.role != "client":
+        return redirect("dashboard_prestataire")
+
     return render(
         request,
-        'accounts/dashboardClient.html'
+        "accounts/dashboardClient.html"
     )
 
 
-def connexion(request):
+
+@login_required
+def dashboard_prestataire(request):
+
+    if request.user.role != "prestataire":
+        return redirect("dashboard_client")
+
     return render(
         request,
-        'accounts/connexion.html'
+        "accounts/dashboardPrestataire.html"
     )

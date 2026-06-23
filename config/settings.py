@@ -134,6 +134,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
+LOGIN_URL = '/connexion/'
+LOGIN_REDIRECT_URL = '/dashboard/client/'
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 

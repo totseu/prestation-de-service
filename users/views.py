@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 
 from .forms import ClientRegistrationForm, PrestataireRegisterForm
 
+from django.contrib.auth.decorators import login_required
+
 BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 
@@ -76,13 +78,30 @@ def connexion(request):
     )
 
 
+
+@login_required
 def dashboard_client(request):
-
-    return render(
-        request,
-        "accounts/dashboard_client.html"
-    )
-
+    context = {
+        "user": request.user,
+        "panel": request.GET.get("panel", "overview"),
+        "stats": {
+            "reservations_actives": 0,
+            "services_consultes": 0,
+            "total_depense": "0",
+        },
+        "prestataires": [],
+        "reservations": [],
+        "historique": [],
+        "facture": {
+            "service": "-",
+            "prestataire": "-",
+            "duree": "-",
+            "sous_total": 0,
+            "frais_plateforme": 0,
+            "total": 0,
+        },
+    }
+    return render(request, "accounts/dashboard_client.html", context)
 
 def dashboard_prestataire(request):
 

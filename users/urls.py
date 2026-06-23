@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path(
         "inscription/",
@@ -18,5 +19,14 @@ urlpatterns = [
         "dashboard/prestataire/",
         views.dashboard_prestataire,
         name="dashboard_prestataire"
+    ),
+
+
+
+
+    path(
+        "connexion/",
+        views.connexion,
+        name="connexion"
     ),
 ]

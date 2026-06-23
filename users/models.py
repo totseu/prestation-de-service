@@ -5,6 +5,7 @@ from django.db import models
 class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
+
         if not email:
             raise ValueError("L'email est obligatoire")
 
@@ -40,6 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('prestataire', 'Prestataire'),
     ]
 
+
     SEXE_CHOICES = [
         ('Homme','Homme'),
         ('Femme','Femme'),
@@ -49,6 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
 
     nom = models.CharField(max_length=100)
+
     prenom = models.CharField(max_length=100)
 
     age = models.IntegerField()
@@ -58,19 +61,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=SEXE_CHOICES
     )
 
+
     role = models.CharField(
         max_length=20,
-        choices=ROLE_CHOICES
-    )
-
-
-    # Prestataire uniquement
+        choices=ROLE_CHOICES,
+        null=True,
+        blank=True
+)
 
     photo_profil = models.ImageField(
         upload_to="profils/",
         null=True,
         blank=True
     )
+
 
     photo_cni = models.ImageField(
         upload_to="cni/",
@@ -103,12 +107,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
 
+
     REQUIRED_FIELDS = [
         'nom',
         'prenom',
         'age',
         'sexe',
-        'role'
     ]
 
 

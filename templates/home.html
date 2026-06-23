@@ -72,7 +72,7 @@
       <a href="#" class="hover:text-white">Tarifs</a>
     </nav>
     <div class="hidden md:flex items-center gap-3">
-      <a href="#" class="px-4 py-2 text-sm font-medium text-white/90 hover:text-white">Connexion</a>
+      <a href="{% url 'connexion' %}" class="px-4 py-2 text-sm font-medium text-white/90 hover:text-white">Connexion</a>
       <a href="{% url 'choix_inscription' %}" class="px-4 py-2 text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-white rounded-md">Inscription</a>
     </div>
     <button id="menuBtn" class="md:hidden text-white" aria-label="Ouvrir le menu" aria-expanded="false">
@@ -85,7 +85,7 @@
     <a href="#avis" class="block text-white/90 text-sm">Témoignages</a>
     <a href="#" class="block text-white/90 text-sm">Tarifs</a>
     <div class="flex gap-3 pt-2">
-    <a href="#" class="flex-1 text-center px-4 py-2 text-sm border border-white/30 text-white rounded-md">Connexion</a>
+    <a href="{% url 'connexion' %}" class="flex-1 text-center px-4 py-2 text-sm border border-white/30 text-white rounded-md">Connexion</a>
     <a href="{% url 'choix_inscription' %}" class="flex-1 text-center px-4 py-2 text-sm bg-emerald-500 text-white rounded-md">Inscription</a>  
     </div>
   </div>

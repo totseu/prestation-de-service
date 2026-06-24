@@ -87,54 +87,44 @@ from django.contrib import messages
 from django.db import models
 from reviews.models import Review
 
+
 @login_required
 def dashboard_client(request):
     user = request.user
     panel = request.GET.get("panel", "overview")
 
-    # Réservations du client
     reservations = Order.objects.filter(
         client=user
     ).select_related('service', 'service__prestataire')
 
-    # Stats
     reservations_actives = reservations.filter(
         statut__in=['planifie', 'en_cours']
     ).count()
 
-    # Historique — réservations terminées ou annulées
     historique = Order.objects.filter(
         client=user,
         statut__in=['termine', 'annule']
     ).select_related('service', 'service__prestataire')
 
-    # Total dépensé
     total = Payment.objects.filter(
         client=user,
         statut='paye'
-    ).aggregate(
-        total=models.Sum('montant_total')
-    )['total'] or 0
+    ).aggregate(total=models.Sum('montant_total'))['total'] or 0
 
-    # Catalogue des services disponibles
     prestataires = Service.objects.filter(
         disponible=True
     ).select_related('prestataire')
 
-    # Facture en attente (première réservation en cours non payée)
     facture_order = reservations.filter(
         statut='en_cours'
-    ).exclude(
-        payment__statut='paye'
-    ).first()
+    ).exclude(payment__statut='paye').first()
 
-    facture = None
     if facture_order:
         frais = int(facture_order.montant * 5 / 100)
         facture = {
             "service": facture_order.service.titre,
             "prestataire": facture_order.service.prestataire.prenom,
-            "duree": str(facture_order.date_livraison) if factura_order.date_livraison else "-",
+            "duree": str(facture_order.date_livraison) if facture_order.date_livraison else "-",
             "sous_total": facture_order.montant,
             "frais_plateforme": frais,
             "total": facture_order.montant + frais,
@@ -152,6 +142,27 @@ def dashboard_client(request):
         if action == "poster_demande":
             messages.success(request, "✅ Demande publiée.")
             return redirect(f"{request.path}?panel=demande")
+
+        if action == "reserver":
+            service_id = request.POST.get("service_id")
+            service = Service.objects.filter(id=service_id, disponible=True).first()
+            if service:
+                Order.objects.create(
+                    client=user,
+                    service=service,
+                    montant=service.prix,
+                    statut='planifie'
+                )
+                messages.success(request, "📅 Réservation créée avec succès !")
+            return redirect(f"{request.path}?panel=reservations")
+
+        if action == "annuler":
+            order_id = request.POST.get("order_id")
+            Order.objects.filter(
+                id=order_id, client=user, statut='planifie'
+            ).update(statut='annule')
+            messages.success(request, "🗑 Réservation annulée.")
+            return redirect(f"{request.path}?panel=reservations")
 
         if action == "payer" and facture_order:
             Payment.objects.update_or_create(

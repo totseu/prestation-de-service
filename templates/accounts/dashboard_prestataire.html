@@ -1,1128 +1,658 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ServicePro — Tableau de bord Prestataire</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        ink: '#0F1B2D', paper: '#F7F5F1', slate: '#5B6472', line: '#E4DED2',
-        amber: '#C8932A',
-        emerald: { 50:'#E8F3F0', 100:'#CFE8E1', 500:'#0E7C66', 600:'#0B6657', 700:'#0B5C4D' }
-      },
-      fontFamily: {
-        display:['Fraunces','serif'], sans:['Inter','sans-serif'], mono:['"IBM Plex Mono"','monospace']
-      }
-    }
-  }
-}
-</script>
-<style>
-  *{box-sizing:border-box}
-  body{font-family:'Inter',sans-serif;background:#F7F5F1;color:#0F1B2D}
-  ::selection{background:#CFE8E1;color:#0F1B2D}
-  :focus-visible{outline:2px solid #0E7C66;outline-offset:2px;border-radius:4px}
-  .eyebrow{font-family:'IBM Plex Mono',monospace;letter-spacing:.14em}
-
-  #sidebar{width:248px;min-height:100vh;background:#0F1B2D;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:30;transition:transform .25s ease}
-  #main{margin-left:248px;min-height:100vh;display:flex;flex-direction:column}
-  @media(max-width:1023px){#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#main{margin-left:0}}
-
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;margin:2px 8px;transition:all .18s;user-select:none}
-  .nav-item:hover{color:#fff;background:rgba(255,255,255,.07)}
-  .nav-item.active{color:#fff;background:rgba(14,124,102,.28);border-left:2px solid #0E7C66;padding-left:16px}
-  .nav-item svg{opacity:.7;flex-shrink:0}
-  .nav-item.active svg{opacity:1}
-  .nav-section{padding:12px 16px 4px;font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.28)}
-
-  .panel{display:none}.panel.active{display:block}
-
-  .card{background:#fff;border:1px solid #E4DED2;border-radius:12px;padding:1.5rem}
-  .card-sm{background:#fff;border:1px solid #E4DED2;border-radius:12px;padding:1.1rem 1.3rem}
-
-  .inp{width:100%;padding:.65rem .9rem;border:1px solid #E4DED2;border-radius:.5rem;background:#fff;font-size:.875rem;color:#0F1B2D}
-  .inp::placeholder{color:#5B6472;opacity:.6}
-  .inp:focus{border-color:#0E7C66;box-shadow:0 0 0 3px #E8F3F0;outline:none}
-  select.inp{cursor:pointer}
-
-  .badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}
-  .badge-green{background:#E8F3F0;color:#0E7C66}
-  .badge-amber{background:#FDF6E3;color:#C8932A}
-  .badge-red{background:#FEE2E2;color:#DC2626}
-  .badge-blue{background:#EFF6FF;color:#2563EB}
-  .badge-slate{background:#F1F2F4;color:#5B6472}
-
-  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.6rem 1.2rem;background:#0E7C66;color:#fff;font-size:.875rem;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:background .18s;white-space:nowrap}
-  .btn-primary:hover{background:#0B6657}
-  .btn-outline{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.6rem 1.2rem;background:transparent;color:#0F1B2D;font-size:.875rem;font-weight:600;border-radius:8px;border:1px solid #E4DED2;cursor:pointer;transition:all .18s;white-space:nowrap}
-  .btn-outline:hover{border-color:#0E7C66;color:#0E7C66}
-  .btn-danger{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.55rem 1rem;background:transparent;color:#DC2626;font-size:.8rem;font-weight:600;border-radius:8px;border:1px solid #FECACA;cursor:pointer;transition:all .18s;white-space:nowrap}
-  .btn-danger:hover{background:#FEE2E2}
-  .btn-accept{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:.5rem .9rem;background:#0E7C66;color:#fff;font-size:.8rem;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:background .18s}
-  .btn-accept:hover{background:#0B6657}
-
-  .stat-card{background:#fff;border:1px solid #E4DED2;border-radius:12px;padding:1.2rem 1.4rem}
-  .progress-bar{height:6px;background:#E4DED2;border-radius:3px;overflow:hidden}
-  .progress-fill{height:100%;background:#0E7C66;border-radius:3px}
-
-  .modal-overlay{position:fixed;inset:0;background:rgba(15,27,45,.5);backdrop-filter:blur(2px);z-index:50;display:none;align-items:center;justify-content:center;padding:1rem}
-  .modal-overlay.open{display:flex}
-  .modal-box{background:#fff;border-radius:16px;padding:2rem;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative}
-
-  #toast{position:fixed;bottom:24px;right:24px;background:#0F1B2D;color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;display:none;align-items:center;gap:8px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-
-  /* Rating stars display */
-  .stars-display{color:#C8932A;letter-spacing:2px}
-
-  /* Chart bar */
-  .chart-bar{background:#E8F3F0;border-radius:4px 4px 0 0;transition:height .4s}
-
-  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – ServicePro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #F8F7F4; }
+    .font-display { font-family: 'Fraunces', serif; }
+    .nav-link { @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer; }
+    .nav-link.active { background: #DCFCE7; color: #15803d; font-weight: 500; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .metric-card { background: white; border-radius: 12px; padding: 20px; border: 1px solid #E5E7EB; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+    .badge-pending  { background: #FEF9C3; color: #854D0E; }
+    .badge-active   { background: #DCFCE7; color: #166534; }
+    .badge-done     { background: #D1FAE5; color: #065F46; }
+    .badge-cancel   { background: #FEE2E2; color: #991B1B; }
+    .badge-pub      { background: #DBEAFE; color: #1D4ED8; }
+    .badge-draft    { background: #F3F4F6; color: #6B7280; }
+    .btn-primary { background: #16A34A; color: white; padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: background 0.15s; }
+    .btn-primary:hover { background: #15803D; }
+    .btn-ghost { background: white; color: #374151; padding: 7px 16px; border-radius: 8px; font-size: 13px; border: 1px solid #E5E7EB; cursor: pointer; transition: all 0.15s; }
+    .btn-ghost:hover { background: #F9FAFB; }
+    .btn-danger { background: white; color: #DC2626; padding: 7px 16px; border-radius: 8px; font-size: 13px; border: 1px solid #FCA5A5; cursor: pointer; }
+    .btn-danger:hover { background: #FEF2F2; }
+    .input { width: 100%; padding: 8px 12px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; outline: none; transition: border 0.15s; }
+    .input:focus { border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+    .card { background: white; border-radius: 12px; border: 1px solid #E5E7EB; }
+    .stat-bar { height: 6px; background: #F3F4F6; border-radius: 3px; overflow: hidden; }
+    .stat-fill { height: 100%; background: #16A34A; border-radius: 3px; }
+    .toggle { position: relative; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #D1D5DB; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+    .toggle-slider:before { content:''; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: 0.2s; }
+    input:checked + .toggle-slider { background: #16A34A; }
+    input:checked + .toggle-slider:before { transform: translateX(16px); }
+  </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<!-- ===== SIDEBAR ===== -->
-<aside id="sidebar" role="navigation" aria-label="Navigation prestataire">
-  <!-- Brand -->
-  <div class="flex items-center gap-2 px-5 py-5 border-b border-white/10">
-    <svg viewBox="0 0 24 24" class="w-6 h-6 text-emerald-500 shrink-0"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/><path d="M8.4 12.4l2.5 2.5 4.6-5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-    <span class="font-display font-semibold text-lg text-white tracking-tight">ServicePro</span>
+{% if messages %}
+<div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
+  {% for message in messages %}
+  <div class="px-4 py-3 rounded-lg shadow text-sm font-medium
+    {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+    {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+    {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+    {{ message }}
   </div>
+  {% endfor %}
+</div>
+{% endif %}
 
-  <!-- Prestataire pill -->
-  <div class="flex items-center gap-3 mx-3 mt-4 mb-1 p-3 rounded-xl bg-white/5">
-    <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold shrink-0 relative">
-      AK
-      <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-ink"></span>
+<div class="flex min-h-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="w-56 bg-white border-r border-gray-100 flex flex-col fixed h-full z-10">
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b border-gray-100">
+      <div class="font-display text-lg text-gray-900">ServicePro</div>
+      <div class="text-xs text-gray-400 mt-0.5">Espace prestataire</div>
     </div>
-    <div class="min-w-0">
-      <p class="text-white text-sm font-semibold truncate">Aline Kamgaing</p>
-      <div class="flex items-center gap-1">
-        <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-emerald-400"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/></svg>
-        <p class="text-white/50 text-xs">Prestataire · Dev Full-Stack</p>
+
+    <!-- Profil mini -->
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-sm flex-shrink-0">
+        {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+      </div>
+      <div class="min-w-0">
+        <div class="text-sm font-medium text-gray-900 truncate">{{ user.prenom }} {{ user.nom }}</div>
+        <div class="text-xs text-green-600">● Disponible</div>
       </div>
     </div>
-  </div>
-  <!-- Badge vérification -->
-  <div class="mx-3 mb-3 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
-    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-    <span class="text-emerald-400 text-xs font-medium">Compte vérifié</span>
-    <span class="ml-auto font-mono text-xs text-amber">★ 4.9</span>
-  </div>
 
-  <nav class="flex-1 space-y-0">
-    <p class="nav-section">Principal</p>
-    <div class="nav-item active" data-panel="overview" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Vue d'ensemble
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Principal</div>
+
+      <a onclick="showPanel('overview', this)" class="nav-link active">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Vue d'ensemble
+      </a>
+
+      <a onclick="showPanel('demandes', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+        Demandes
+        {% if nouvelles_demandes %}
+        <span class="ml-auto bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">{{ nouvelles_demandes|length }}</span>
+        {% endif %}
+      </a>
+
+      <a onclick="showPanel('services', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Mes services
+      </a>
+
+      <a onclick="showPanel('commandes', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Commandes
+        {% if commandes_actives %}
+        <span class="ml-auto bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">{{ commandes_actives }}</span>
+        {% endif %}
+      </a>
+
+      <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mt-4 mb-2">Finance</div>
+
+      <a onclick="showPanel('paiements', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        Paiements
+      </a>
+
+      <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mt-4 mb-2">Réputation</div>
+
+      <a onclick="showPanel('evaluations', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+        Évaluations
+      </a>
+
+      <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mt-4 mb-2">Compte</div>
+
+      <a onclick="showPanel('profil', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Profil public
+      </a>
+
+      <a onclick="showPanel('settings', this)" class="nav-link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Paramètres
+      </a>
+    </nav>
+
+    <!-- Déconnexion -->
+    <div class="px-3 py-3 border-t border-gray-100">
+      <a href="{% url 'connexion' %}" class="nav-link text-red-400 hover:text-red-600 hover:bg-red-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Déconnexion
+      </a>
     </div>
-    <div class="nav-item" data-panel="demandes" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
-      Demandes clients
-      <span class="ml-auto bg-red-500 text-white text-[10px] font-mono font-bold rounded-full px-1.5 py-0.5">4</span>
-    </div>
+  </aside>
 
-    <p class="nav-section">Services</p>
-    <div class="nav-item" data-panel="publier" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-      Publier un service
-    </div>
-    <div class="nav-item" data-panel="mes-services" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-linecap="round"/></svg>
-      Mes services
-    </div>
+  <!-- MAIN -->
+  <main class="flex-1 ml-56 flex flex-col min-h-screen">
 
-    <p class="nav-section">Finance & Réputation</p>
-    <div class="nav-item" data-panel="paiements" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-      Gestion des paiements
-    </div>
-    <div class="nav-item" data-panel="evaluations" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 18l-6.2 3.1 1.2-6.9L2 9.3l6.9-1L12 2z"/></svg>
-      Évaluations reçues
-    </div>
-
-    <p class="nav-section">Compte</p>
-    <div class="nav-item" data-panel="messages" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Messagerie
-      <span class="ml-auto bg-emerald-500 text-white text-[10px] font-mono font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
-    </div>
-    <div class="nav-item" data-panel="profil" onclick="navigate(this)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>
-      Mon profil
-    </div>
-  </nav>
-
-  <div class="p-4 border-t border-white/10 mt-2">
-    <a href="#" class="nav-item block" style="color:rgba(239,68,68,.8)">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Déconnexion
-    </a>
-  </div>
-</aside>
-
-<!-- ===== MAIN ===== -->
-<div id="main">
-
-  <!-- Top bar -->
-  <header class="sticky top-0 z-20 bg-paper border-b border-line flex items-center justify-between px-6 py-3">
-    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-md hover:bg-line">
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
-    </button>
-    <div class="flex items-center gap-2 ml-2">
-      <span id="topbarTitle" class="font-semibold text-sm text-slate">Vue d'ensemble</span>
-    </div>
-    <div class="flex items-center gap-3 ml-auto">
-      <button class="relative p-2 rounded-full hover:bg-line" aria-label="Notifications">
-        <svg class="w-5 h-5 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-      </button>
-      <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center cursor-pointer">AK</div>
-    </div>
-  </header>
-
-  <div class="p-6 flex-1">
-
-    <!-- ===== 1. VUE D'ENSEMBLE ===== -->
-    <section class="panel active" id="panel-overview">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Bonjour, Aline 👋</p>
-        <h2 class="font-display font-semibold text-2xl">Vue d'ensemble</h2>
-      </div>
-
-      <!-- KPIs -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="stat-card">
-          <p class="text-slate text-xs font-medium mb-1">Revenus ce mois</p>
-          <p class="font-display font-semibold text-2xl">148 500 <span class="text-sm font-normal text-slate">FCFA</span></p>
-          <p class="text-emerald-500 text-xs mt-1">↑ 18% vs mois dernier</p>
-        </div>
-        <div class="stat-card">
-          <p class="text-slate text-xs font-medium mb-1">Demandes en attente</p>
-          <p class="font-display font-semibold text-2xl text-amber">4</p>
-          <p class="text-slate text-xs mt-1">À traiter sous 24h</p>
-        </div>
-        <div class="stat-card">
-          <p class="text-slate text-xs font-medium mb-1">Missions en cours</p>
-          <p class="font-display font-semibold text-2xl">3</p>
-          <p class="text-slate text-xs mt-1">Dont 1 livraison proche</p>
-        </div>
-        <div class="stat-card">
-          <p class="text-slate text-xs font-medium mb-1">Note moyenne</p>
-          <p class="font-display font-semibold text-2xl">4.9 <span class="text-amber text-lg">★</span></p>
-          <p class="text-slate text-xs mt-1">Sur 32 avis</p>
-        </div>
-      </div>
-
-      <div class="grid lg:grid-cols-3 gap-5">
-
-        <!-- Revenue chart -->
-        <div class="card lg:col-span-2">
-          <div class="flex items-center justify-between mb-5">
-            <h3 class="font-semibold text-sm">Revenus — 6 derniers mois</h3>
-            <span class="eyebrow text-[10px] text-slate">FCFA</span>
-          </div>
-          <div class="flex items-end gap-2 h-28">
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-slate">55K</span>
-              <div class="chart-bar w-full" style="height:40%;background:#CFE8E1"></div>
-              <span class="text-[10px] text-slate">Jan</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-slate">82K</span>
-              <div class="chart-bar w-full" style="height:57%;background:#CFE8E1"></div>
-              <span class="text-[10px] text-slate">Fév</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-slate">70K</span>
-              <div class="chart-bar w-full" style="height:48%;background:#CFE8E1"></div>
-              <span class="text-[10px] text-slate">Mar</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-slate">95K</span>
-              <div class="chart-bar w-full" style="height:65%;background:#CFE8E1"></div>
-              <span class="text-[10px] text-slate">Avr</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-slate">126K</span>
-              <div class="chart-bar w-full" style="height:85%;background:#CFE8E1"></div>
-              <span class="text-[10px] text-slate">Mai</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center gap-1">
-              <span class="text-[10px] text-emerald-600 font-semibold">148K</span>
-              <div class="chart-bar w-full" style="height:100%;background:#0E7C66"></div>
-              <span class="text-[10px] text-emerald-600 font-semibold">Juin</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick actions -->
-        <div class="card">
-          <h3 class="font-semibold text-sm mb-4">Actions rapides</h3>
-          <div class="space-y-2">
-            <button onclick="navigate(document.querySelector('[data-panel=demandes]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-left transition">
-              <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-              </div>
-              <div>
-                <span class="text-sm font-medium block">4 demandes en attente</span>
-                <span class="text-xs text-slate">À accepter ou refuser</span>
-              </div>
-            </button>
-            <button onclick="navigate(document.querySelector('[data-panel=publier]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
-              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-              </div>
-              <span class="text-sm font-medium">Publier un service</span>
-            </button>
-            <button onclick="navigate(document.querySelector('[data-panel=paiements]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
-              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              </div>
-              <span class="text-sm font-medium">Voir les paiements</span>
-            </button>
-            <button onclick="navigate(document.querySelector('[data-panel=evaluations]'))" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-50 text-left transition">
-              <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 18l-6.2 3.1 1.2-6.9L2 9.3l6.9-1L12 2z"/></svg>
-              </div>
-              <span class="text-sm font-medium">Mes évaluations</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Missions en cours -->
-        <div class="card lg:col-span-3">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-sm">Missions en cours</h3>
-            <button onclick="navigate(document.querySelector('[data-panel=mes-services]'))" class="text-emerald-600 text-xs font-medium hover:underline">Voir mes services</button>
-          </div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div>
-              <div class="flex justify-between text-xs mb-2"><span class="font-medium">Landing Page – Carine N.</span><span class="text-slate">60%</span></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
-              <p class="text-[11px] text-slate mt-1.5">Livraison : 25 juin 2026</p>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-2"><span class="font-medium">App mobile – Brice T.</span><span class="text-slate">35%</span></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
-              <p class="text-[11px] text-slate mt-1.5">Livraison : 10 juil. 2026</p>
-            </div>
-            <div>
-              <div class="flex justify-between text-xs mb-2"><span class="font-medium">API REST – NovaCom</span><span class="text-slate">85%</span></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
-              <p class="text-[11px] text-amber mt-1.5">⚑ Livraison : 23 juin 2026</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 2. DEMANDES CLIENTS ===== -->
-    <section class="panel" id="panel-demandes">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">À traiter</p>
-        <h2 class="font-display font-semibold text-2xl">Demandes clients</h2>
-        <p class="text-slate text-sm mt-1">Acceptez ou refusez les demandes reçues. Toute décision notifie le client immédiatement.</p>
-      </div>
-
-      <!-- Pending -->
-      <h3 class="font-semibold text-sm mb-3 flex items-center gap-2">
-        En attente <span class="badge badge-red">4</span>
-      </h3>
-      <div class="space-y-4 mb-8" id="pendingList">
-        <div class="card flex flex-col md:flex-row md:items-start gap-4" id="req1">
-          <div class="w-10 h-10 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">CN</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <p class="font-semibold text-sm">Carine Njoya</p>
-              <span class="badge badge-amber">Nouveau</span>
-            </div>
-            <p class="font-medium text-sm mb-1">Développement d'un site e-commerce complet</p>
-            <p class="text-slate text-xs leading-relaxed mb-2">Boutique en ligne avec panier, paiement mobile money, tableau de bord admin. Environ 15 pages. Design à fournir.</p>
-            <div class="flex flex-wrap gap-4 text-xs text-slate">
-              <span>💰 Budget : <b class="text-ink">120 000 FCFA</b></span>
-              <span>📅 Délai : <b class="text-ink">1 mois</b></span>
-              <span>🕐 Reçu il y a 2h</span>
-            </div>
-          </div>
-          <div class="flex gap-2 shrink-0">
-            <button class="btn-accept" onclick="acceptReq('req1','Carine Njoya')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Accepter
-            </button>
-            <button class="btn-danger" onclick="rejectReq('req1','Carine Njoya')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Refuser
-            </button>
-          </div>
-        </div>
-
-        <div class="card flex flex-col md:flex-row md:items-start gap-4" id="req2">
-          <div class="w-10 h-10 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">BT</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <p class="font-semibold text-sm">Brice Tamba</p>
-              <span class="badge badge-amber">Nouveau</span>
-            </div>
-            <p class="font-medium text-sm mb-1">Intégration API de paiement Orange Money</p>
-            <p class="text-slate text-xs leading-relaxed mb-2">Intégration dans un projet Django/React existant. API déjà documentée, clé de test disponible.</p>
-            <div class="flex flex-wrap gap-4 text-xs text-slate">
-              <span>💰 Budget : <b class="text-ink">45 000 FCFA</b></span>
-              <span>📅 Délai : <b class="text-ink">1 semaine</b></span>
-              <span>🕐 Reçu il y a 5h</span>
-            </div>
-          </div>
-          <div class="flex gap-2 shrink-0">
-            <button class="btn-accept" onclick="acceptReq('req2','Brice Tamba')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Accepter
-            </button>
-            <button class="btn-danger" onclick="rejectReq('req2','Brice Tamba')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Refuser
-            </button>
-          </div>
-        </div>
-
-        <div class="card flex flex-col md:flex-row md:items-start gap-4" id="req3">
-          <div class="w-10 h-10 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center shrink-0">ML</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <p class="font-semibold text-sm">Martine Londi</p>
-              <span class="badge badge-slate">Hier</span>
-            </div>
-            <p class="font-medium text-sm mb-1">Refonte du back-office CRM interne</p>
-            <p class="text-slate text-xs leading-relaxed mb-2">Module clients + facturation + suivi commandes. Stack actuelle : PHP/MySQL. Migration vers Django souhaitée.</p>
-            <div class="flex flex-wrap gap-4 text-xs text-slate">
-              <span>💰 Budget : <b class="text-ink">200 000 FCFA</b></span>
-              <span>📅 Délai : <b class="text-ink">2 mois</b></span>
-              <span>🕐 Reçu hier à 09:14</span>
-            </div>
-          </div>
-          <div class="flex gap-2 shrink-0">
-            <button class="btn-accept" onclick="acceptReq('req3','Martine Londi')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Accepter
-            </button>
-            <button class="btn-danger" onclick="rejectReq('req3','Martine Londi')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Refuser
-            </button>
-          </div>
-        </div>
-
-        <div class="card flex flex-col md:flex-row md:items-start gap-4" id="req4">
-          <div class="w-10 h-10 rounded-full bg-slate text-white text-xs font-bold flex items-center justify-center shrink-0">RN</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <p class="font-semibold text-sm">René Nkoa</p>
-              <span class="badge badge-slate">Hier</span>
-            </div>
-            <p class="font-medium text-sm mb-1">Développement landing page + formulaire contact</p>
-            <p class="text-slate text-xs leading-relaxed mb-2">Page de présentation d'une école privée. Formulaire de pré-inscription, galerie photo, section tarifs.</p>
-            <div class="flex flex-wrap gap-4 text-xs text-slate">
-              <span>💰 Budget : <b class="text-ink">30 000 FCFA</b></span>
-              <span>📅 Délai : <b class="text-ink">10 jours</b></span>
-              <span>🕐 Reçu hier à 16:45</span>
-            </div>
-          </div>
-          <div class="flex gap-2 shrink-0">
-            <button class="btn-accept" onclick="acceptReq('req4','René Nkoa')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Accepter
-            </button>
-            <button class="btn-danger" onclick="rejectReq('req4','René Nkoa')">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Refuser
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Accepted -->
-      <h3 class="font-semibold text-sm mb-3 flex items-center gap-2">Acceptées <span class="badge badge-green">2</span></h3>
-      <div class="space-y-3">
-        <div class="card-sm flex flex-col md:flex-row md:items-center gap-4 opacity-80">
-          <div class="w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">CN</div>
-          <div class="flex-1">
-            <p class="font-medium text-sm">Landing Page · Carine N.</p>
-            <p class="text-slate text-xs">Acceptée le 16 juin · En cours de réalisation</p>
-          </div>
-          <span class="badge badge-amber">En cours</span>
-        </div>
-        <div class="card-sm flex flex-col md:flex-row md:items-center gap-4 opacity-80">
-          <div class="w-9 h-9 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">BT</div>
-          <div class="flex-1">
-            <p class="font-medium text-sm">App Mobile · Brice T.</p>
-            <p class="text-slate text-xs">Acceptée le 10 juin · En cours de réalisation</p>
-          </div>
-          <span class="badge badge-amber">En cours</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 3. PUBLIER UN SERVICE ===== -->
-    <section class="panel" id="panel-publier">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Catalogue</p>
-        <h2 class="font-display font-semibold text-2xl">Publier un service</h2>
-        <p class="text-slate text-sm mt-1">Votre service sera visible par les clients après validation par l'équipe ServicePro.</p>
-      </div>
-      <div class="max-w-2xl">
-        <div class="card space-y-5">
-          <div>
-            <label class="block text-sm font-medium mb-1.5">Titre du service</label>
-            <input type="text" class="inp" placeholder="Ex. Développement d'une application web complète">
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium mb-1.5">Catégorie</label>
-              <select class="inp">
-                <option value="">Sélectionner</option>
-                <option selected>Développement Web</option>
-                <option>Design Graphique</option>
-                <option>Marketing Digital</option>
-                <option>Traduction</option>
-                <option>Rédaction</option>
-                <option>Conseil</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1.5">Tarif (FCFA)</label>
-              <input type="number" class="inp" placeholder="Ex. 25000">
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1.5">Description</label>
-            <textarea rows="5" class="inp resize-none" placeholder="Décrivez précisément ce que vous offrez, vos livrables, vos outils, votre expérience…"></textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium mb-1.5">Délai de livraison</label>
-              <select class="inp">
-                <option>24 heures</option>
-                <option>3 jours</option>
-                <option>1 semaine</option>
-                <option selected>2 semaines</option>
-                <option>1 mois</option>
-                <option>À négocier</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1.5">Nombre de révisions</label>
-              <select class="inp">
-                <option>1 révision</option>
-                <option selected>2 révisions</option>
-                <option>3 révisions</option>
-                <option>Illimité</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1.5">Tags (séparés par des virgules)</label>
-            <input type="text" class="inp" placeholder="Ex. Django, React, API, Mobile">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1.5">Visuels / Portfolio</label>
-            <label class="flex items-center gap-3 border-2 border-dashed border-line rounded-lg p-4 cursor-pointer hover:border-emerald-500 transition">
-              <input type="file" class="sr-only" multiple accept="image/*">
-              <svg class="w-5 h-5 text-slate shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <div>
-                <p class="text-sm font-medium">Ajouter des captures d'écran</p>
-                <p class="text-xs text-slate">Augmente la visibilité de votre service · PNG, JPG</p>
-              </div>
-            </label>
-          </div>
-          <div class="flex gap-3 pt-1">
-            <button class="btn-primary" onclick="showToast('🚀 Service soumis — en attente de validation.')">Soumettre pour validation</button>
-            <button class="btn-outline">Enregistrer le brouillon</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 4. MES SERVICES ===== -->
-    <section class="panel" id="panel-mes-services">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Gestion</p>
-          <h2 class="font-display font-semibold text-2xl">Mes services</h2>
-        </div>
-        <button onclick="navigate(document.querySelector('[data-panel=publier]'))" class="btn-primary">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-          Nouveau service
+    <!-- TOPBAR -->
+    <header class="bg-white border-b border-gray-100 px-6 h-14 flex items-center justify-between sticky top-0 z-10">
+      <span id="topbar-title" class="text-sm font-medium text-gray-900">Vue d'ensemble</span>
+      <div class="flex items-center gap-2">
+        <button class="btn-ghost text-xs">🔔</button>
+        <button onclick="showPanel('services', document.querySelectorAll('.nav-link')[2])" class="btn-primary text-xs">
+          + Nouveau service
         </button>
       </div>
-      <div class="space-y-4">
+    </header>
 
-        <!-- Service card 1 -->
-        <div class="card">
-          <div class="flex flex-col md:flex-row md:items-start gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-2">
-                <h3 class="font-semibold">Développement Landing Page</h3>
-                <span class="badge badge-green">Actif</span>
-              </div>
-              <p class="text-slate text-sm mb-3">Site vitrine moderne, responsive, optimisé SEO. Livraison sous 7 jours. 2 révisions incluses.</p>
-              <div class="flex flex-wrap gap-5 text-xs">
-                <span class="text-slate">👁 <b class="text-ink">134</b> vues</span>
-                <span class="text-slate">📥 <b class="text-ink">8</b> demandes</span>
-                <span class="text-slate">⭐ <b class="text-ink">4.9</b> (12 avis)</span>
-                <span class="font-mono font-semibold text-emerald-600">25 000 FCFA</span>
-              </div>
+    <div class="flex-1 p-6">
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : VUE D'ENSEMBLE -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-overview" class="panel active">
+
+        <!-- Métriques -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Revenus ce mois</div>
+            <div class="text-2xl font-semibold text-gray-900">{{ revenus_mois|default:"0" }} F</div>
+            <div class="text-xs text-green-600 mt-1">↑ Commandes livrées</div>
+          </div>
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Commandes actives</div>
+            <div class="text-2xl font-semibold text-gray-900">{{ commandes_actives }}</div>
+            <div class="text-xs text-gray-400 mt-1">En cours de traitement</div>
+          </div>
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Note moyenne</div>
+            <div class="text-2xl font-semibold text-gray-900">
+              {% if note_moyenne %}{{ note_moyenne }} / 5{% else %}—{% endif %}
             </div>
-            <div class="flex gap-2 shrink-0">
-              <button class="btn-outline text-xs py-1.5 px-3" onclick="openEditModal('Développement Landing Page','25000','Site vitrine moderne, responsive, optimisé SEO.')">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-                Modifier
-              </button>
-              <button class="btn-danger text-xs py-1.5 px-3" onclick="showToast('🗑 Service retiré du catalogue.')">Retirer</button>
-            </div>
+            <div class="text-xs text-gray-400 mt-1">{{ nb_evaluations }} évaluation{{ nb_evaluations|pluralize }}</div>
+          </div>
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Taux de complétion</div>
+            <div class="text-2xl font-semibold text-green-600">{{ taux_completion }}%</div>
+            <div class="text-xs text-gray-400 mt-1">{{ livrees_temps }} / {{ total_terminees }} livrées</div>
           </div>
         </div>
 
-        <!-- Service card 2 -->
-        <div class="card">
-          <div class="flex flex-col md:flex-row md:items-start gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-2">
-                <h3 class="font-semibold">Développement Application Mobile React Native</h3>
-                <span class="badge badge-green">Actif</span>
-              </div>
-              <p class="text-slate text-sm mb-3">App iOS & Android, publication stores comprise. Délai 4–8 semaines selon complexité.</p>
-              <div class="flex flex-wrap gap-5 text-xs">
-                <span class="text-slate">👁 <b class="text-ink">89</b> vues</span>
-                <span class="text-slate">📥 <b class="text-ink">5</b> demandes</span>
-                <span class="text-slate">⭐ <b class="text-ink">5.0</b> (7 avis)</span>
-                <span class="font-mono font-semibold text-emerald-600">150 000 FCFA</span>
-              </div>
+        <div class="grid grid-cols-2 gap-5 mb-5">
+
+          <!-- Nouvelles demandes -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-semibold text-gray-900">Nouvelles demandes</h3>
+              <a onclick="showPanel('demandes', document.querySelectorAll('.nav-link')[1])" class="text-xs text-green-600 cursor-pointer hover:underline">Voir tout →</a>
             </div>
-            <div class="flex gap-2 shrink-0">
-              <button class="btn-outline text-xs py-1.5 px-3" onclick="openEditModal('App Mobile React Native','150000','App iOS & Android, publication stores comprise.')">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-                Modifier
-              </button>
-              <button class="btn-danger text-xs py-1.5 px-3" onclick="showToast('🗑 Service retiré du catalogue.')">Retirer</button>
+            {% if nouvelles_demandes %}
+              {% for cmd in nouvelles_demandes %}
+              <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 text-xs font-bold flex-shrink-0">
+                  {{ cmd.service.titre|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-gray-900 truncate">{{ cmd.service.titre }}</div>
+                  <div class="text-xs text-gray-400">{{ cmd.client.prenom }} {{ cmd.client.nom }}</div>
+                </div>
+                <span class="badge badge-pending">En attente</span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-8">
+                <div class="text-3xl mb-2">📭</div>
+                <div class="text-sm text-gray-400">Aucune nouvelle demande</div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Commandes en cours -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-semibold text-gray-900">Commandes en cours</h3>
+              <a onclick="showPanel('commandes', document.querySelectorAll('.nav-link')[3])" class="text-xs text-green-600 cursor-pointer hover:underline">Voir tout →</a>
             </div>
+            {% if en_cours %}
+              {% for cmd in en_cours %}
+              <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xs font-bold flex-shrink-0">
+                  {{ cmd.service.titre|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-gray-900 truncate">{{ cmd.service.titre }}</div>
+                  <div class="text-xs text-gray-400">
+                    {% if cmd.date_livraison %}Livraison : {{ cmd.date_livraison|date:"d M" }}{% else %}Date non définie{% endif %}
+                  </div>
+                </div>
+                <span class="text-sm font-semibold text-gray-700">{{ cmd.montant }} F</span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-8">
+                <div class="text-3xl mb-2">✅</div>
+                <div class="text-sm text-gray-400">Aucune commande en cours</div>
+              </div>
+            {% endif %}
           </div>
         </div>
 
-        <!-- Service card 3 - draft -->
-        <div class="card opacity-60">
-          <div class="flex flex-col md:flex-row md:items-start gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-2">
-                <h3 class="font-semibold">Intégration API & Microservices</h3>
-                <span class="badge badge-slate">Brouillon</span>
-              </div>
-              <p class="text-slate text-sm mb-3">Conception et développement d'architectures microservices. Non encore soumis à validation.</p>
-              <div class="flex flex-wrap gap-5 text-xs">
-                <span class="text-slate">Pas encore publié</span>
-                <span class="font-mono font-semibold text-slate">80 000 FCFA</span>
-              </div>
+        <div class="grid grid-cols-2 gap-5">
+          <!-- Dernières évaluations -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-semibold text-gray-900">Dernières évaluations</h3>
+              <a onclick="showPanel('evaluations', document.querySelectorAll('.nav-link')[5])" class="text-xs text-green-600 cursor-pointer hover:underline">Voir tout →</a>
             </div>
-            <div class="flex gap-2 shrink-0">
-              <button class="btn-primary text-xs py-1.5 px-3" onclick="showToast('🚀 Service soumis pour validation.')">Soumettre</button>
-              <button class="btn-outline text-xs py-1.5 px-3" onclick="openEditModal('Intégration API & Microservices','80000','Conception et développement d architectures microservices.')">Modifier</button>
+            {% if dernieres_evals %}
+              {% for eval in dernieres_evals %}
+              <div class="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold flex-shrink-0">
+                  {{ eval.client.prenom|first|upper }}
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium text-gray-900">{{ eval.client.prenom }} {{ eval.client.nom }}</div>
+                  <div class="text-yellow-400 text-xs">{% for i in "12345" %}{% if forloop.counter <= eval.note %}★{% else %}☆{% endif %}{% endfor %}</div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-8 text-sm text-gray-400">Aucune évaluation pour l'instant</div>
+            {% endif %}
+          </div>
+
+          <!-- Taux complétion détail -->
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Performance</h3>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>Taux de complétion</span><span class="font-medium text-gray-900">{{ taux_completion }}%</span>
+                </div>
+                <div class="stat-bar"><div class="stat-fill" style="width: {{ taux_completion }}%"></div></div>
+              </div>
+              <div class="pt-2 border-t border-gray-50 space-y-2">
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-400">Commandes livrées</span>
+                  <span class="font-medium">{{ livrees_temps }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-400">Total terminées</span>
+                  <span class="font-medium">{{ total_terminees }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-400">Note globale</span>
+                  <span class="font-medium text-yellow-500">{% if note_moyenne %}★ {{ note_moyenne }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ===== 5. GESTION DES PAIEMENTS ===== -->
-    <section class="panel" id="panel-paiements">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Finance</p>
-        <h2 class="font-display font-semibold text-2xl">Gestion des paiements</h2>
-      </div>
-
-      <!-- Summary -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="stat-card border-l-4 border-emerald-500">
-          <p class="text-slate text-xs mb-1">Disponible au retrait</p>
-          <p class="font-display font-semibold text-2xl text-emerald-600">94 500 <span class="text-sm font-normal text-slate">FCFA</span></p>
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : DEMANDES -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-demandes" class="panel">
+        <div class="mb-5">
+          <h2 class="text-lg font-semibold text-gray-900">Demandes clients</h2>
+          <p class="text-sm text-gray-400">Répondez aux demandes en attente</p>
         </div>
-        <div class="stat-card border-l-4 border-amber">
-          <p class="text-slate text-xs mb-1">En attente de libération</p>
-          <p class="font-display font-semibold text-2xl text-amber">54 000 <span class="text-sm font-normal text-slate">FCFA</span></p>
-          <p class="text-xs text-slate mt-1">Libéré à la validation client</p>
-        </div>
-        <div class="stat-card border-l-4 border-slate">
-          <p class="text-slate text-xs mb-1">Total reçu (juin 2026)</p>
-          <p class="font-display font-semibold text-2xl">148 500 <span class="text-sm font-normal text-slate">FCFA</span></p>
-        </div>
-      </div>
-
-      <!-- Withdraw -->
-      <div class="card mb-6 max-w-md">
-        <h3 class="font-semibold text-sm mb-4">Retirer mes fonds</h3>
-        <div class="space-y-3 mb-4">
-          <label class="flex items-center gap-3 p-3 rounded-lg border border-line cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition">
-            <input type="radio" name="withdraw" checked class="accent-emerald-600">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 bg-amber rounded flex items-center justify-center shrink-0"><span class="text-white font-bold text-[10px]">OM</span></div>
-              <span class="text-sm font-medium">Orange Money</span>
-            </div>
-          </label>
-          <label class="flex items-center gap-3 p-3 rounded-lg border border-line cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 transition">
-            <input type="radio" name="withdraw" class="accent-emerald-600">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center shrink-0"><span class="text-white font-bold text-[10px]">MM</span></div>
-              <span class="text-sm font-medium">MTN Mobile Money</span>
-            </div>
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="block text-xs font-medium text-slate mb-1.5">Numéro de téléphone</label>
-          <input type="text" class="inp" placeholder="Ex. 6 90 00 00 00" value="6 90 12 34 56">
-        </div>
-        <div class="mb-4">
-          <label class="block text-xs font-medium text-slate mb-1.5">Montant à retirer (FCFA)</label>
-          <input type="number" class="inp" placeholder="Max. 94 500">
-        </div>
-        <button class="btn-primary w-full" onclick="showToast('💸 Demande de retrait envoyée — traitement sous 24h.')">Demander le retrait</button>
-      </div>
-
-      <!-- Transactions -->
-      <div class="card overflow-x-auto">
-        <h3 class="font-semibold text-sm mb-4">Historique des transactions</h3>
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left border-b border-line">
-              <th class="pb-3 font-semibold text-slate text-xs">Date</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Client</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Service</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Brut</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Comm. (5%)</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Net</th>
-              <th class="pb-3 font-semibold text-slate text-xs">Statut</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-line">
-            <tr>
-              <td class="py-3 font-mono text-xs text-slate">22 juin</td>
-              <td class="py-3">Carine N.</td>
-              <td class="py-3 text-slate text-xs">Landing Page</td>
-              <td class="py-3 font-mono text-xs">25 000</td>
-              <td class="py-3 font-mono text-xs text-slate">-1 250</td>
-              <td class="py-3 font-mono text-xs font-semibold text-emerald-600">23 750</td>
-              <td class="py-3"><span class="badge badge-amber">En attente</span></td>
-            </tr>
-            <tr>
-              <td class="py-3 font-mono text-xs text-slate">15 juin</td>
-              <td class="py-3">Brice T.</td>
-              <td class="py-3 text-slate text-xs">App Mobile</td>
-              <td class="py-3 font-mono text-xs">75 000</td>
-              <td class="py-3 font-mono text-xs text-slate">-3 750</td>
-              <td class="py-3 font-mono text-xs font-semibold text-emerald-600">71 250</td>
-              <td class="py-3"><span class="badge badge-green">Reçu</span></td>
-            </tr>
-            <tr>
-              <td class="py-3 font-mono text-xs text-slate">10 juin</td>
-              <td class="py-3">NovaCom</td>
-              <td class="py-3 text-slate text-xs">API REST</td>
-              <td class="py-3 font-mono text-xs">50 000</td>
-              <td class="py-3 font-mono text-xs text-slate">-2 500</td>
-              <td class="py-3 font-mono text-xs font-semibold text-emerald-600">47 500</td>
-              <td class="py-3"><span class="badge badge-green">Reçu</span></td>
-            </tr>
-            <tr>
-              <td class="py-3 font-mono text-xs text-slate">3 juin</td>
-              <td class="py-3">Martine L.</td>
-              <td class="py-3 text-slate text-xs">CRM interne</td>
-              <td class="py-3 font-mono text-xs">0</td>
-              <td class="py-3 font-mono text-xs text-slate">-</td>
-              <td class="py-3 font-mono text-xs font-semibold text-slate">—</td>
-              <td class="py-3"><span class="badge badge-red">Annulé</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ===== 6. ÉVALUATIONS ===== -->
-    <section class="panel" id="panel-evaluations">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Réputation</p>
-        <h2 class="font-display font-semibold text-2xl">Évaluations reçues</h2>
-      </div>
-
-      <!-- Score global -->
-      <div class="card mb-6 flex flex-col md:flex-row gap-8 items-start md:items-center">
-        <div class="text-center">
-          <p class="font-display font-semibold text-6xl text-ink">4.9</p>
-          <p class="text-amber text-2xl mt-1">★★★★★</p>
-          <p class="text-slate text-xs mt-1">32 avis · Classement top 5%</p>
-        </div>
-        <div class="flex-1 space-y-2 w-full">
-          <div class="flex items-center gap-3 text-xs">
-            <span class="text-amber w-4 shrink-0">5★</span>
-            <div class="progress-bar flex-1"><div class="progress-fill" style="width:85%"></div></div>
-            <span class="text-slate w-4 text-right">27</span>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="text-amber w-4 shrink-0">4★</span>
-            <div class="progress-bar flex-1"><div class="progress-fill" style="width:14%"></div></div>
-            <span class="text-slate w-4 text-right">4</span>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="text-amber w-4 shrink-0">3★</span>
-            <div class="progress-bar flex-1"><div class="progress-fill" style="width:3%"></div></div>
-            <span class="text-slate w-4 text-right">1</span>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="text-slate w-4 shrink-0">2★</span>
-            <div class="progress-bar flex-1"><div class="progress-fill" style="width:0%"></div></div>
-            <span class="text-slate w-4 text-right">0</span>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="text-slate w-4 shrink-0">1★</span>
-            <div class="progress-bar flex-1"><div class="progress-fill" style="width:0%"></div></div>
-            <span class="text-slate w-4 text-right">0</span>
-          </div>
-        </div>
-        <div class="space-y-3 text-sm w-full md:w-52 shrink-0">
-          <div class="flex justify-between"><span class="text-slate">Communication</span><span class="font-semibold">5.0 ★</span></div>
-          <div class="flex justify-between"><span class="text-slate">Qualité du travail</span><span class="font-semibold">4.9 ★</span></div>
-          <div class="flex justify-between"><span class="text-slate">Respect des délais</span><span class="font-semibold">4.8 ★</span></div>
-          <div class="flex justify-between"><span class="text-slate">Rapport qualité/prix</span><span class="font-semibold">4.9 ★</span></div>
-        </div>
-      </div>
-
-      <!-- Review list -->
-      <div class="space-y-4">
-        <div class="card">
-          <div class="flex items-start gap-3 mb-3">
-            <div class="w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">CN</div>
-            <div class="flex-1">
-              <div class="flex items-center justify-between">
-                <p class="font-semibold text-sm">Carine Njoya</p>
-                <span class="font-mono text-xs text-slate">12 juin 2026</span>
+        {% if nouvelles_demandes %}
+          {% for cmd in nouvelles_demandes %}
+          <div class="card p-5 mb-3">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="text-sm font-semibold text-gray-900">{{ cmd.service.titre }}</div>
+                <div class="text-xs text-gray-400 mt-0.5">{{ cmd.client.prenom }} {{ cmd.client.nom }} · {{ cmd.created_at|timesince }} ago</div>
               </div>
-              <p class="text-amber text-sm">★★★★★</p>
+              <span class="badge badge-pending">Nouvelle</span>
             </div>
-          </div>
-          <p class="text-sm text-ink leading-relaxed">"Travail excellent, livré avant le délai prévu. Aline a su anticiper mes besoins et proposer des améliorations que je n'avais pas envisagées. Je recommande sans hésitation."</p>
-          <p class="text-xs text-slate mt-2">Service : Développement Landing Page</p>
-        </div>
-        <div class="card">
-          <div class="flex items-start gap-3 mb-3">
-            <div class="w-9 h-9 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">BT</div>
-            <div class="flex-1">
-              <div class="flex items-center justify-between">
-                <p class="font-semibold text-sm">Brice Tamba</p>
-                <span class="font-mono text-xs text-slate">30 mai 2026</span>
-              </div>
-              <p class="text-amber text-sm">★★★★★</p>
-            </div>
-          </div>
-          <p class="text-sm text-ink leading-relaxed">"Très professionnelle, réactive et compétente. L'application mobile est exactement ce que nous voulions. Nous travaillerons à nouveau ensemble."</p>
-          <p class="text-xs text-slate mt-2">Service : Application Mobile</p>
-        </div>
-        <div class="card">
-          <div class="flex items-start gap-3 mb-3">
-            <div class="w-9 h-9 rounded-full bg-slate text-white text-xs font-bold flex items-center justify-center shrink-0">ML</div>
-            <div class="flex-1">
-              <div class="flex items-center justify-between">
-                <p class="font-semibold text-sm">Maïmouna Lobe</p>
-                <span class="font-mono text-xs text-slate">14 mai 2026</span>
-              </div>
-              <p class="text-amber text-sm">★★★★<span class="text-slate/40">★</span></p>
-            </div>
-          </div>
-          <p class="text-sm text-ink leading-relaxed">"Très bon travail dans l'ensemble. Quelques allers-retours sur les spécifications, mais le résultat final est propre et fonctionnel."</p>
-          <p class="text-xs text-slate mt-2">Service : Développement Landing Page</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 7. MESSAGERIE ===== -->
-    <section class="panel" id="panel-messages">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Communication</p>
-        <h2 class="font-display font-semibold text-2xl">Messagerie</h2>
-      </div>
-      <div class="card max-w-3xl grid md:grid-cols-5 gap-0 overflow-hidden rounded-xl border border-line p-0">
-        <!-- Conversations -->
-        <div class="md:col-span-2 border-r border-line divide-y divide-line">
-          <div class="p-4 bg-emerald-50 cursor-pointer">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shrink-0">CN</div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-sm">Carine N.</p>
-                <p class="text-slate text-xs truncate">Parfait, je regarde…</p>
-              </div>
-              <div class="flex flex-col items-end gap-1 shrink-0">
-                <p class="text-[10px] text-slate">14:31</p>
-                <span class="w-4 h-4 bg-emerald-500 rounded-full text-white text-[10px] flex items-center justify-center">1</span>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 cursor-pointer hover:bg-paper">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-ink text-white text-xs font-bold flex items-center justify-center shrink-0">BT</div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-sm">Brice T.</p>
-                <p class="text-slate text-xs truncate">OK, on se parle demain</p>
-              </div>
-              <div class="flex flex-col items-end gap-1 shrink-0">
-                <p class="text-[10px] text-slate">Hier</p>
-                <span class="w-4 h-4 bg-emerald-500 rounded-full text-white text-[10px] flex items-center justify-center">1</span>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 cursor-pointer hover:bg-paper">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center shrink-0">ML</div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-sm">Martine L.</p>
-                <p class="text-slate text-xs truncate">Merci pour le rapport</p>
-              </div>
-              <p class="text-[10px] text-slate shrink-0">Lun.</p>
-            </div>
-          </div>
-        </div>
-        <!-- Chat -->
-        <div class="md:col-span-3 flex flex-col h-96">
-          <div class="p-4 border-b border-line flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center">CN</div>
-            <div>
-              <p class="font-semibold text-sm">Carine N.</p>
-              <p class="text-xs text-slate flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>En ligne</p>
-            </div>
-          </div>
-          <div class="flex-1 overflow-y-auto p-4 space-y-3">
-            <div class="flex gap-2 flex-row-reverse">
-              <div class="w-7 h-7 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">AK</div>
-              <div class="bg-emerald-500 text-white rounded-xl rounded-tr-none p-3 max-w-xs">
-                <p class="text-xs">Bonjour Carine ! J'ai terminé la version mobile. Voici le lien de prévisualisation.</p>
-                <p class="text-[10px] text-white/70 mt-1">14:28</p>
-              </div>
+            <div class="text-xs text-gray-500 mb-4 leading-relaxed">
+              Demande pour le service : <strong>{{ cmd.service.titre }}</strong>
+              {% if cmd.montant %} · Budget : {{ cmd.montant }} F{% endif %}
+              {% if cmd.date_livraison %} · Délai : {{ cmd.date_livraison|date:"d/m/Y" }}{% endif %}
             </div>
             <div class="flex gap-2">
-              <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center justify-center shrink-0">CN</div>
-              <div class="bg-line rounded-xl rounded-tl-none p-3 max-w-xs">
-                <p class="text-xs">Parfait, je regarde et je reviens vers vous dans l'heure !</p>
-                <p class="text-[10px] text-slate mt-1">14:31</p>
+              <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="refuser_demande">
+                <input type="hidden" name="order_id" value="{{ cmd.id }}">
+                <button type="submit" class="btn-danger text-xs">Refuser</button>
+              </form>
+              <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="accepter_demande">
+                <input type="hidden" name="order_id" value="{{ cmd.id }}">
+                <button type="submit" class="btn-primary text-xs">Accepter</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="card p-12 text-center">
+            <div class="text-4xl mb-3">📭</div>
+            <div class="text-sm font-medium text-gray-700">Aucune demande en attente</div>
+            <div class="text-xs text-gray-400 mt-1">Les nouvelles demandes de clients apparaîtront ici</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : MES SERVICES -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-services" class="panel">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Mes services</h2>
+            <p class="text-sm text-gray-400">Gérez et publiez vos offres</p>
+          </div>
+          <a href="{% url 'service-create' %}" class="btn-primary text-xs">+ Publier un service</a>
+        </div>
+
+        {% if services %}
+        <div class="grid grid-cols-2 gap-4">
+          {% for service in services %}
+          <div class="card p-4 {% if service.statut == 'brouillon' %}opacity-70{% endif %}">
+            <div class="flex items-start justify-between mb-2">
+              <div class="text-sm font-semibold text-gray-900 flex-1 pr-2">{{ service.titre }}</div>
+              <span class="badge {% if service.statut == 'publie' %}badge-pub{% elif service.statut == 'suspendu' %}badge-cancel{% else %}badge-draft{% endif %}">
+                {% if service.statut == 'publie' %}Publié{% elif service.statut == 'suspendu' %}Suspendu{% else %}Brouillon{% endif %}
+              </span>
+            </div>
+            <div class="text-lg font-semibold text-green-600 mb-2">
+              {% if service.prix %}{{ service.prix }} F{% else %}<span class="text-gray-400 text-sm">Prix non défini</span>{% endif %}
+            </div>
+            <div class="text-xs text-gray-400 mb-3">
+              👁 {{ service.vues_count }} vues · ♥ {{ service.favoris_count }} favoris
+            </div>
+            <div class="flex gap-2 pt-2 border-t border-gray-50">
+              <a href="#" class="btn-ghost text-xs flex-1 text-center">Modifier</a>
+              <form method="post" action="{% url 'service-toggle' service.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="{% if service.statut == 'publie' %}btn-danger{% else %}btn-primary{% endif %} text-xs">
+                  {% if service.statut == 'publie' %}Masquer{% elif service.statut == 'suspendu' %}Republier{% else %}Publier{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <div class="card p-12 text-center">
+            <div class="text-4xl mb-3">💼</div>
+            <div class="text-sm font-medium text-gray-700">Aucun service créé</div>
+            <div class="text-xs text-gray-400 mt-1 mb-4">Publiez votre premier service pour commencer à recevoir des commandes</div>
+            <a href="{% url 'service-create' %}" class="btn-primary text-xs inline-block">+ Créer mon premier service</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : COMMANDES -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-commandes" class="panel">
+        <div class="mb-5">
+          <h2 class="text-lg font-semibold text-gray-900">Commandes</h2>
+          <p class="text-sm text-gray-400">{{ commandes_actives }} commande{{ commandes_actives|pluralize }} active{{ commandes_actives|pluralize }}</p>
+        </div>
+        <div class="card">
+          {% if en_cours %}
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-100">
+                  <th class="text-left text-xs font-medium text-gray-400 px-5 py-3">Service</th>
+                  <th class="text-left text-xs font-medium text-gray-400 px-5 py-3">Client</th>
+                  <th class="text-left text-xs font-medium text-gray-400 px-5 py-3">Livraison</th>
+                  <th class="text-left text-xs font-medium text-gray-400 px-5 py-3">Montant</th>
+                  <th class="text-left text-xs font-medium text-gray-400 px-5 py-3">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cmd in en_cours %}
+                <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ cmd.service.titre }}</td>
+                  <td class="px-5 py-3 text-sm text-gray-500">{{ cmd.client.prenom }} {{ cmd.client.nom }}</td>
+                  <td class="px-5 py-3 text-sm text-gray-500">
+                    {% if cmd.date_livraison %}{{ cmd.date_livraison|date:"d/m/Y" }}{% else %}—{% endif %}
+                  </td>
+                  <td class="px-5 py-3 text-sm font-semibold text-gray-900">{{ cmd.montant }} F</td>
+                  <td class="px-5 py-3"><span class="badge badge-active">En cours</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="p-12 text-center">
+              <div class="text-4xl mb-3">📋</div>
+              <div class="text-sm text-gray-400">Aucune commande active</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : PAIEMENTS -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-paiements" class="panel">
+        <div class="mb-5">
+          <h2 class="text-lg font-semibold text-gray-900">Paiements</h2>
+          <p class="text-sm text-gray-400">Suivi de vos revenus</p>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mb-5">
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Revenus ce mois</div>
+            <div class="text-2xl font-semibold text-gray-900">{{ revenus_mois }} F</div>
+          </div>
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Commandes actives</div>
+            <div class="text-2xl font-semibold text-gray-900">{{ commandes_actives }}</div>
+          </div>
+          <div class="metric-card">
+            <div class="text-xs text-gray-400 mb-1">Évaluations</div>
+            <div class="text-2xl font-semibold text-gray-900">{{ nb_evaluations }}</div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="text-center py-10 text-gray-400 text-sm">
+            <div class="text-3xl mb-2">💳</div>
+            L'historique des transactions apparaîtra ici.<br>
+            <span class="text-xs">Intégrez le modèle Payment pour afficher les détails.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : ÉVALUATIONS -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-evaluations" class="panel">
+        <div class="mb-5">
+          <h2 class="text-lg font-semibold text-gray-900">Évaluations reçues</h2>
+          <p class="text-sm text-gray-400">{{ nb_evaluations }} avis · Note {{ note_moyenne }} / 5</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-5 mb-5">
+          <div class="metric-card flex items-center gap-6">
+            <div class="text-center">
+              <div class="text-5xl font-semibold text-green-600">{% if note_moyenne %}{{ note_moyenne }}{% else %}—{% endif %}</div>
+              <div class="text-yellow-400 text-lg mt-1">★★★★★</div>
+              <div class="text-xs text-gray-400 mt-1">{{ nb_evaluations }} avis</div>
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <div class="flex items-center gap-2 text-xs"><span class="text-gray-400 w-4">5★</span><div class="stat-bar flex-1" style="margin:0"><div class="stat-fill" style="width:80%"></div></div></div>
+              <div class="flex items-center gap-2 text-xs"><span class="text-gray-400 w-4">4★</span><div class="stat-bar flex-1" style="margin:0"><div class="stat-fill" style="width:15%"></div></div></div>
+              <div class="flex items-center gap-2 text-xs"><span class="text-gray-400 w-4">3★</span><div class="stat-bar flex-1" style="margin:0"><div class="stat-fill" style="width:5%"></div></div></div>
+              <div class="flex items-center gap-2 text-xs"><span class="text-gray-400 w-4">2★</span><div class="stat-bar flex-1" style="margin:0"><div class="stat-fill" style="width:0%"></div></div></div>
+              <div class="flex items-center gap-2 text-xs"><span class="text-gray-400 w-4">1★</span><div class="stat-bar flex-1" style="margin:0"><div class="stat-fill" style="width:0%"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          {% if dernieres_evals %}
+            {% for eval in dernieres_evals %}
+            <div class="py-4 border-b border-gray-50 last:border-0">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xs font-bold">
+                    {{ eval.client.prenom|first|upper }}
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">{{ eval.client.prenom }} {{ eval.client.nom }}</div>
+                    <div class="text-yellow-400 text-xs">{% for i in "12345" %}{% if forloop.counter <= eval.note %}★{% else %}☆{% endif %}{% endfor %}</div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-400">{{ eval.created_at|timesince }} ago</span>
+              </div>
+              {% if eval.commentaire %}
+              <p class="text-sm text-gray-500 leading-relaxed">{{ eval.commentaire }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="py-10 text-center text-sm text-gray-400">
+              <div class="text-3xl mb-2">⭐</div>
+              Aucune évaluation reçue pour l'instant.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : PROFIL -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-profil" class="panel">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Profil public</h2>
+            <p class="text-sm text-gray-400">Ce que voient les clients</p>
+          </div>
+          <button form="form-profil" type="submit" class="btn-primary text-xs">Sauvegarder</button>
+        </div>
+        <form id="form-profil" method="post" enctype="multipart/form-data" action="">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="sauvegarder_profil">
+          <div class="card p-5 space-y-4">
+            <div class="flex items-center gap-4 pb-4 border-b border-gray-50">
+              <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-xl">
+                {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+              </div>
+              <div>
+                <button type="button" class="btn-ghost text-xs">Changer la photo</button>
+                <div class="text-xs text-gray-400 mt-1">JPG ou PNG · max 2Mo</div>
               </div>
             </div>
-          </div>
-          <div class="p-3 border-t border-line flex gap-2">
-            <input type="text" class="inp py-2 text-xs flex-1" placeholder="Écrire un message…">
-            <button class="btn-primary px-4 py-2" onclick="showToast('Message envoyé.')">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== 8. PROFIL ===== -->
-    <section class="panel" id="panel-profil">
-      <div class="mb-6">
-        <p class="eyebrow text-[11px] font-semibold uppercase text-emerald-500 mb-1">Compte</p>
-        <h2 class="font-display font-semibold text-2xl">Mon profil prestataire</h2>
-      </div>
-      <div class="max-w-2xl space-y-5">
-        <!-- Photo + badge -->
-        <div class="card flex items-center gap-5">
-          <div class="relative">
-            <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-xl font-bold flex items-center justify-center">AK</div>
-            <span class="absolute -bottom-1 -right-1 bg-emerald-400 rounded-full p-1 border-2 border-white">
-              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-white"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/></svg>
-            </span>
-          </div>
-          <div class="flex-1">
-            <p class="font-semibold">Aline Kamgaing</p>
-            <p class="text-slate text-sm">aline.k@exemple.com</p>
-            <p class="text-xs text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
-              <svg viewBox="0 0 24 24" class="w-3 h-3"><path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" fill="currentColor"/></svg>
-              Compte vérifié · Développeuse Full-Stack
-            </p>
-          </div>
-          <button class="btn-outline text-xs py-1.5 px-3">Changer photo</button>
-        </div>
-
-        <!-- Infos perso -->
-        <div class="card space-y-4">
-          <h3 class="font-semibold text-sm">Informations personnelles</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div><label class="block text-xs font-medium text-slate mb-1">Nom</label><input type="text" value="Kamgaing" class="inp"></div>
-            <div><label class="block text-xs font-medium text-slate mb-1">Prénom</label><input type="text" value="Aline" class="inp"></div>
-            <div><label class="block text-xs font-medium text-slate mb-1">Email</label><input type="email" value="aline.k@exemple.com" class="inp"></div>
-            <div><label class="block text-xs font-medium text-slate mb-1">Téléphone</label><input type="text" value="+237 6 91 00 00 00" class="inp"></div>
-            <div><label class="block text-xs font-medium text-slate mb-1">Âge</label><input type="number" value="27" class="inp"></div>
-            <div><label class="block text-xs font-medium text-slate mb-1">Sexe</label>
-              <select class="inp"><option selected>Femme</option><option>Homme</option></select>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Prénom</label>
+                <input type="text" name="first_name" value="{{ user.prenom }}" class="input">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Nom</label>
+                <input type="text" name="last_name" value="{{ user.nom }}" class="input">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+              <input type="email" name="email" value="{{ user.email }}" class="input">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Titre professionnel</label>
+              <input type="text" name="titre_pro" placeholder="Ex : Designer graphique · Abidjan" class="input">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Biographie</label>
+              <textarea name="bio" rows="3" placeholder="Décrivez votre expérience et vos spécialités..." class="input" style="resize:vertical;"></textarea>
             </div>
           </div>
-          <div>
-            <label class="block text-xs font-medium text-slate mb-1">Fonction / Spécialité</label>
-            <input type="text" value="Développeuse Full-Stack · Django · React · React Native" class="inp">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate mb-1">Bio courte</label>
-            <textarea rows="3" class="inp resize-none">5 ans d'expérience en développement web et mobile. Spécialisée Django REST et React. +40 projets livrés pour des clients en Afrique francophone.</textarea>
-          </div>
-          <button class="btn-primary text-sm" onclick="showToast('✅ Profil mis à jour.')">Enregistrer</button>
-        </div>
+        </form>
+      </div>
 
-        <!-- Documents -->
-        <div class="card space-y-3">
-          <h3 class="font-semibold text-sm mb-1">Documents de vérification</h3>
-          <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="text-sm font-medium">CNI · Vérifiée</span>
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- PANEL : PARAMÈTRES -->
+      <!-- ═══════════════════════════════════════════ -->
+      <div id="panel-settings" class="panel">
+        <div class="mb-5">
+          <h2 class="text-lg font-semibold text-gray-900">Paramètres</h2>
+          <p class="text-sm text-gray-400">Compte et notifications</p>
+        </div>
+        <div class="card p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Notifications</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between py-3 border-b border-gray-50">
+              <div>
+                <div class="text-sm font-medium text-gray-900">Nouvelles demandes</div>
+                <div class="text-xs text-gray-400">Email + SMS à chaque demande entrante</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
-            <span class="badge badge-green">✓ Validé</span>
-          </div>
-          <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="text-sm font-medium">Photo de profil</span>
+            <div class="flex items-center justify-between py-3 border-b border-gray-50">
+              <div>
+                <div class="text-sm font-medium text-gray-900">Paiements reçus</div>
+                <div class="text-xs text-gray-400">Confirmation à chaque transaction</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
-            <span class="badge badge-green">✓ Validé</span>
-          </div>
-          <div class="flex items-center justify-between p-3 bg-paper rounded-lg border border-line">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-slate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span class="text-sm">Certificat / Diplôme</span>
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <div class="text-sm font-medium text-gray-900">Rappels de délai</div>
+                <div class="text-xs text-gray-400">24h avant la date de livraison</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
             </div>
-            <button class="btn-outline text-xs py-1 px-2">Téléverser</button>
           </div>
         </div>
-
-        <!-- Security -->
-        <div class="card space-y-3">
-          <h3 class="font-semibold text-sm">Sécurité</h3>
-          <div><label class="block text-xs font-medium text-slate mb-1">Mot de passe actuel</label><input type="password" placeholder="••••••••" class="inp"></div>
-          <div><label class="block text-xs font-medium text-slate mb-1">Nouveau mot de passe</label><input type="password" placeholder="••••••••" class="inp"></div>
-          <div><label class="block text-xs font-medium text-slate mb-1">Confirmer</label><input type="password" placeholder="••••••••" class="inp"></div>
-          <button class="btn-outline text-sm" onclick="showToast('🔐 Mot de passe mis à jour.')">Changer le mot de passe</button>
-        </div>
       </div>
-    </section>
 
-  </div><!-- /p-6 -->
-</div><!-- /main -->
-
-<!-- ===== EDIT SERVICE MODAL ===== -->
-<div id="editModal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
-  <div class="modal-box">
-    <button onclick="closeEditModal()" class="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full hover:bg-line">
-      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <h3 class="font-display font-semibold text-lg mb-5">Modifier le service</h3>
-    <div class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1.5">Titre</label>
-        <input type="text" id="editTitle" class="inp">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1.5">Description</label>
-        <textarea id="editDesc" rows="4" class="inp resize-none"></textarea>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1.5">Tarif (FCFA)</label>
-          <input type="number" id="editPrice" class="inp">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1.5">Délai</label>
-          <select class="inp">
-            <option>1 semaine</option><option selected>2 semaines</option><option>1 mois</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-primary w-full mt-2" onclick="closeEditModal();showToast('✅ Service mis à jour.')">Enregistrer les modifications</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== TOAST ===== -->
-<div id="toast" role="status" aria-live="polite">
-  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <span id="toastMsg"></span>
+    </div><!-- /p-6 -->
+  </main>
 </div>
 
 <script>
-  const topbarLabels = {
-    'overview':'Vue d\'ensemble','demandes':'Demandes clients','publier':'Publier un service',
-    'mes-services':'Mes services','paiements':'Gestion des paiements','evaluations':'Évaluations',
-    'messages':'Messagerie','profil':'Mon profil'
+const titles = {
+  overview: "Vue d'ensemble",
+  demandes: "Demandes clients",
+  services: "Mes services",
+  commandes: "Commandes",
+  paiements: "Paiements",
+  evaluations: "Évaluations",
+  profil: "Profil public",
+  settings: "Paramètres"
+};
+
+function showPanel(name, navEl) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = titles[name] || '';
+}
+
+// Lire panel depuis URL ?panel=xxx
+const urlPanel = new URLSearchParams(window.location.search).get('panel');
+if (urlPanel) {
+  const navLinks = document.querySelectorAll('.nav-link');
+  const map = {
+    overview: 0, demandes: 1, services: 2, commandes: 3,
+    paiements: 4, evaluations: 5, profil: 6, settings: 7
   };
-
-  function navigate(el) {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    const key = el.dataset.panel;
-    document.getElementById('panel-' + key).classList.add('active');
-    document.getElementById('topbarTitle').textContent = topbarLabels[key] || '';
-    if (window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
-    window.scrollTo(0,0);
-  }
-
-  document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-  });
-  document.addEventListener('click', e => {
-    const sb = document.getElementById('sidebar');
-    const btn = document.getElementById('mobileMenuBtn');
-    if (window.innerWidth < 1024 && sb.classList.contains('open') && !sb.contains(e.target) && !btn.contains(e.target)) sb.classList.remove('open');
-  });
-
-  // Accept / Reject
-  function acceptReq(id, name) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.transition = 'opacity .3s';
-    el.style.opacity = '0';
-    setTimeout(() => { el.remove(); }, 300);
-    showToast('✅ Demande de ' + name + ' acceptée.');
-  }
-  function rejectReq(id, name) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.transition = 'opacity .3s';
-    el.style.opacity = '0';
-    setTimeout(() => { el.remove(); }, 300);
-    showToast('❌ Demande de ' + name + ' refusée.');
-  }
-
-  // Edit modal
-  function openEditModal(title, price, desc) {
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editPrice').value = price;
-    document.getElementById('editDesc').value = desc;
-    document.getElementById('editModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeEditModal() {
-    document.getElementById('editModal').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  // Toast
-  let toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    document.getElementById('toastMsg').textContent = msg;
-    t.style.display = 'flex';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
-  }
+  showPanel(urlPanel, navLinks[map[urlPanel]]);
+}
 </script>
+
 </body>
 </html>

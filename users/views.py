@@ -220,9 +220,79 @@ def dashboard_client(request):
 
     return render(request, "accounts/dashboard_client.html", context)
 
-def dashboard_prestataire(request):
 
-    return render(
-        request,
-        "accounts/dashboard_prestataire.html"
-    )
+
+
+
+
+# users/views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from services.models import Service
+from orders.models import Order
+from reviews.models import Review
+from django.db.models import Sum, Avg, Count
+
+@login_required
+def dashboard_overview(request):
+    user = request.user
+    
+    # Métriques services
+    mes_services = Service.objects.filter(prestataire=user)
+    services_publies = mes_services.filter(statut='publie').count()
+
+    # Métriques commandes
+    from django.utils import timezone
+    from datetime import timedelta
+    debut_mois = timezone.now().replace(day=1, hour=0, minute=0, second=0)
+
+    commandes = Order.objects.filter(prestataire=user)
+    commandes_actives = commandes.filter(statut='en_cours')
+    commandes_mois = commandes.filter(created_at__gte=debut_mois)
+
+    # Revenus
+    revenus_mois = commandes_mois.filter(
+        statut='livre'
+    ).aggregate(total=Sum('montant'))['total'] or 0
+
+    # Évaluations
+    evaluations = Review.objects.filter(prestataire=user)
+    note_moyenne = evaluations.aggregate(avg=Avg('note'))['avg'] or 0
+
+    # Dernières demandes (commandes en attente)
+    nouvelles_demandes = commandes.filter(
+        statut='en_attente'
+    ).select_related('client', 'service').order_by('-created_at')[:5]
+
+    # Commandes en cours
+    en_cours = commandes_actives.select_related(
+        'client', 'service'
+    ).order_by('date_livraison')[:5]
+
+    # Dernières évaluations
+    dernieres_evals = evaluations.select_related(
+        'client'
+    ).order_by('-created_at')[:3]
+
+    # Taux de complétion
+    total_terminees = commandes.filter(statut__in=['livre', 'annule']).count()
+    livrees_temps = commandes.filter(statut='livre').count()
+    taux_completion = round((livrees_temps / total_terminees * 100) if total_terminees else 0)
+
+    context = {
+        'services_publies': services_publies,
+        'commandes_actives': commandes_actives.count(),
+        'revenus_mois': revenus_mois,
+        'note_moyenne': round(note_moyenne, 1),
+        'nb_evaluations': evaluations.count(),
+        'nouvelles_demandes': nouvelles_demandes,
+        'en_cours': en_cours,
+        'dernieres_evals': dernieres_evals,
+        'taux_completion': taux_completion,
+        'livrees_temps': livrees_temps,
+        'total_terminees': total_terminees,
+    }
+    return render(request, 'dashboard/overview.html', context)
+
+# Alias pour compatibilité avec users/urls.py
+dashboard_prestataire = dashboard_overview

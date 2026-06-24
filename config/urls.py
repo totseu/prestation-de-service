@@ -10,6 +10,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='home.html')),
     path('admin/', admin.site.urls),
     path('', include('users.urls')),
+     path('prestataire/', include('users.dashboard_urls')),
 ]
 
 urlpatterns += static(
